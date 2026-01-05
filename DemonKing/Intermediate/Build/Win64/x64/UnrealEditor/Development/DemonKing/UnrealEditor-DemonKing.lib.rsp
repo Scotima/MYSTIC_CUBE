@@ -1,0 +1,13 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UnrealEditor-DemonKing.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"E:/MYSTIC_CUBE/DemonKing/Intermediate/Build/Win64/x64/DemonKingEditor/Development/UnrealEd/SharedPCH.UnrealEd.Project.ValApi.ValExpApi.Cpp20.h.obj"
+"E:/MYSTIC_CUBE/DemonKing/Intermediate/Build/Win64/x64/UnrealEditor/Development/DemonKing/DemonKing.cpp.obj"
+"E:/MYSTIC_CUBE/DemonKing/Intermediate/Build/Win64/x64/UnrealEditor/Development/DemonKing/PerModuleInline.gen.cpp.obj"
+"E:/MYSTIC_CUBE/DemonKing/Intermediate/Build/Win64/x64/UnrealEditor/Development/DemonKing/Default.rc2.res"
+/OUT:"E:/MYSTIC_CUBE/DemonKing/Intermediate/Build/Win64/x64/UnrealEditor/Development/DemonKing/UnrealEditor-DemonKing.lib"

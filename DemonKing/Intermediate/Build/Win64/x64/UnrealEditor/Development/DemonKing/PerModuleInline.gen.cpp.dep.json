@@ -1,0 +1,14 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "e:\\mystic_cube\\demonking\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\demonking\\permoduleinline.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "e:\\mystic_cube\\demonking\\intermediate\\build\\win64\\x64\\demonkingeditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.valexpapi.cpp20.h.pch",
+        "Includes": [
+            "e:\\mystic_cube\\demonking\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\demonking\\definitions.demonking.h",
+            "e:\\ue_5.7\\engine\\source\\runtime\\core\\public\\hal\\permoduleinline.inl"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

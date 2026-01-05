@@ -1,0 +1,6 @@
+[18856:1764:0105/175102.376:WARNING:chrome_main_delegate.cc(745)] This is Chrome version 128.0.6613.138 (not a warning)
+[18856:1764:0105/175102.680:WARNING:account_consistency_mode_manager.cc(77)] Desktop Identity Consistency cannot be enabled as no OAuth client ID and client secret have been configured.
+[18856:1764:0105/175120.600:WARNING:external_registry_loader_win.cc(232)] Error observing HKLM: 5
+[18856:1764:0105/175121.018:ERROR:network_service_instance_impl.cc(608)] Network service crashed, restarting service.
+[18856:1764:0105/175121.774:ERROR:device_event_log_impl.cc(196)] [17:51:21.682] USB: usb_service_win.cc:105 SetupDiGetDeviceProperty({{A45C254E-DF1C-4EFD-8020-67D146A850E0}, 6}) failed: 요소가 없습니다. (0x490)
+[18856:1764:0105/175249.548:WARNING:pref_notifier_impl.cc(41)] Pref observer for media_router.cast_allow_all_ips found at shutdown.

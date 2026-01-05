@@ -1,0 +1,8 @@
+{
+	"SourceFiles": [
+		"E:\\MYSTIC_CUBE\\DemonKing\\Source\\DemonKing\\DemonKing.Build.cs",
+		"E:\\MYSTIC_CUBE\\DemonKing\\Source\\DemonKing.Target.cs",
+		"E:\\MYSTIC_CUBE\\DemonKing\\Source\\DemonKingEditor.Target.cs"
+	],
+	"EngineVersion": "5.7.1"
+}
