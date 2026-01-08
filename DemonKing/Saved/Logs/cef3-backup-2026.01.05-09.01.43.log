@@ -1,0 +1,6 @@
+[22524:28524:0105/180115.269:WARNING:chrome_main_delegate.cc(745)] This is Chrome version 128.0.6613.138 (not a warning)
+[22524:28524:0105/180115.335:WARNING:account_consistency_mode_manager.cc(77)] Desktop Identity Consistency cannot be enabled as no OAuth client ID and client secret have been configured.
+[22524:28524:0105/180118.518:WARNING:external_registry_loader_win.cc(232)] Error observing HKLM: 5
+[22524:28524:0105/180124.887:ERROR:device_event_log_impl.cc(196)] [18:01:24.887] USB: usb_service_win.cc:105 SetupDiGetDeviceProperty({{A45C254E-DF1C-4EFD-8020-67D146A850E0}, 6}) failed: 요소가 없습니다. (0x490)
+[2352:35244:0105/180143.617:WARNING:sqlite_persistent_store_backend_base.cc(198)] Failed to post task from FlushAndNotifyInBackground@net\extras\sqlite\sqlite_persistent_store_backend_base.cc:248 to client_task_runner_.
+[22524:28524:0105/180143.702:WARNING:pref_notifier_impl.cc(41)] Pref observer for media_router.cast_allow_all_ips found at shutdown.
