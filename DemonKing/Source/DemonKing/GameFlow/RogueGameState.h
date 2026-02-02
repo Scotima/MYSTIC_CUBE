@@ -1,19 +1,11 @@
-#pragma once
+ï»¿#pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
+#include "DemonKing/GameFlow/RogueRunTypes.h"
 #include "RogueGameState.generated.h"
 
 
-// ·± Á¾·á ÀÌÀ¯
-UENUM(BlueprintType)
-enum class ERogueRunEndReason : uint8
-{
-	None UMETA(DisplayName = "None"),
-	Clear UMETA(DisplayName = "Clear"),
-	PartyWipe UMETA(DisplayName = "PartyWipe"),
-	Quit UMETA(DisplayName = "Quit"),
-	Disconnect UMETA(DisplayName = "Disconnect"),
-};
+
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRunActiveChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStageIdChanged, FName, NesStageId);
@@ -29,21 +21,30 @@ class DEMONKING_API ARogueGameState : public AGameStateBase
 public:
 
 	ARogueGameState();
-	//·± È°¼º / ºñÈ°¼ºÈ­.
+	//ëŸ° í™œì„± / ë¹„í™œì„±í™”.
 	UFUNCTION(BlueprintCallable, Category = "Run")
-	void SetRunActivate(bool bInRunActive);
+	void SetRunActive(bool bInRunActive);
 
-	//½ºÅ×ÀÌÁö ID ¼¼ÆÃ (¼­¹ö Àü¿ë.)
+	//ìŠ¤í…Œì´ì§€ ID ì„¸íŒ… (ì„œë²„ ì „ìš©.)
 	UFUNCTION(BlueprintCallable, Category = "Run")
 	void SetStageId(FName NewStageId);
 
-	// Á¾·á ÀÌÀ¯ ¼¼ÆÃ(¼­¹ö Àü¿ë)
+	// ì¢…ë£Œ ì´ìœ  ì„¸íŒ…(ì„œë²„ ì „ìš©)
 	UFUNCTION(BlueprintCallable, Category = "Run")
 	void SetEndReason(ERogueRunEndReason NewReason);
 
-	// ·± °ü·Ã »óÅÂ ÃÊ±âÈ­ ÇÏ°í ½ÍÀ» ¶§
+	// ëŸ° ê´€ë ¨ ìƒíƒœ ì´ˆê¸°í™” í•˜ê³  ì‹¶ì„ ë•Œ
 	UFUNCTION(BlueprintCallable, Category = "Run")
 	void ResetRunState();
+
+	UFUNCTION(BlueprintPure, Category = "RUN")
+	bool GetRunActive() const { return bRunActive; }
+
+	UFUNCTION(BlueprintPure, Category = "Run")
+	FName GetStageId() const { return CurrentStageId; }
+
+	UFUNCTION(BlueprintPure, Category = "Run")
+	ERogueRunEndReason GetEndReason() const { return EndReason;}
 
 protected:
 	
@@ -71,24 +72,24 @@ private:
 
 public:
 
-	// ·±ÀÌ ÁøÇà ÁßÀÎÁö.
+	// ëŸ°ì´ ì§„í–‰ ì¤‘ì¸ì§€.
 
 	UPROPERTY(ReplicatedUsing = OnRep_RunActive, BlueprintReadOnly, Category = "Run")
 	bool bRunActive = false;
 
-	//ÇöÀç ½ºÅ×ÀÌÁö.
+	//í˜„ì¬ ìŠ¤í…Œì´ì§€.
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentStageId, BlueprintReadOnly, Category = "Run")
 	FName CurrentStageId = NAME_None;
 
 
-	//·± Á¾·á ÀÌÀ¯.
+	//ëŸ° ì¢…ë£Œ ì´ìœ .
 	UPROPERTY(ReplicatedUsing = OnRep_EndReason, BlueprintReadOnly, Category = "Run")
 	ERogueRunEndReason EndReason = ERogueRunEndReason::None;
 
 
 public:
 
-	// UI/BP Event(¼±ÅÃ)
+	// UI/BP Event(ì„ íƒ)
 	UPROPERTY(BlueprintAssignable, Category = "Run")
 	FOnRunActiveChanged OnRunActiveChanged;
 

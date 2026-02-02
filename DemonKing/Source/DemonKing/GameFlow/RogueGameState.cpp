@@ -1,11 +1,11 @@
-#include "DemonKing/GameFlow/RogueGameState.h"
+ï»¿#include "DemonKing/GameFlow/RogueGameState.h"
 #include "Net/UnrealNetwork.h"  
 ARogueGameState::ARogueGameState()
 {
 	bReplicates = true;
 }
 
-void ARogueGameState::SetRunActivate(bool bInRunActive)
+void ARogueGameState::SetRunActive(bool bInRunActive)
 {
 	if (!HasAuthority())
 	{
@@ -14,18 +14,18 @@ void ARogueGameState::SetRunActivate(bool bInRunActive)
 
 	if (bRunActive == bInRunActive)
 	{
-		return; // Áßº¹ ¹æÁö.
+		return; // ì¤‘ë³µ ë°©ì§€.
 	}
 
 	bRunActive = bInRunActive;
 
-	//¼­¹öµµ Áï½Ã ¹İÀÀ
+	//ì„œë²„ë„ ì¦‰ì‹œ ë°˜ì‘
 	NotifyRunActiveChanged_Server();
 }
 
 void ARogueGameState::SetStageId(FName NewStageId)
 {
-	//¼­¹ö Àü¿ë °¡µå
+	//ì„œë²„ ì „ìš© ê°€ë“œ
 	if (!HasAuthority())
 	{
 		return;
@@ -33,7 +33,7 @@ void ARogueGameState::SetStageId(FName NewStageId)
 
 	if (CurrentStageId == NewStageId)
 	{
-		return; // Áßº¹ ¼¼ÆÃ ¹æÁö
+		return; // ì¤‘ë³µ ì„¸íŒ… ë°©ì§€
 	}
 
 	CurrentStageId = NewStageId;
@@ -50,12 +50,12 @@ void ARogueGameState::SetEndReason(ERogueRunEndReason NewReason)
 
 	if (EndReason == NewReason)
 	{
-		return; // [Ãß°¡] Áßº¹ ¼¼ÆÃ ¹æÁö
+		return; // [ì¶”ê°€] ì¤‘ë³µ ì„¸íŒ… ë°©ì§€
 	}
 
 	EndReason = NewReason;
 
-	// [Ãß°¡] ¼­¹öµµ Áï½Ã ¹İÀÀ(¼±ÅÃ)
+	// [ì¶”ê°€] ì„œë²„ë„ ì¦‰ì‹œ ë°˜ì‘(ì„ íƒ)
 	NotifyEndReasonChanged_Server();
 }
 
@@ -77,19 +77,19 @@ void ARogueGameState::ResetRunState()
 
 void ARogueGameState::OnRep_RunActive()
 {
-	//Å¬¶ó¿¡¼­ °ª º¯°æ ½Ã UI ¹İÀÀ.
+	//í´ë¼ì—ì„œ ê°’ ë³€ê²½ ì‹œ UI ë°˜ì‘.
 	OnRunActiveChanged.Broadcast();
 }
 
 void ARogueGameState::OnRep_CurrentStageId()
 {
-	//Å¬¶ó¿¡¼­ °ª º¯°æ½Ã UI ¹İÀÀ.
+	//í´ë¼ì—ì„œ ê°’ ë³€ê²½ì‹œ UI ë°˜ì‘.
 	OnStageIdChanged.Broadcast(CurrentStageId);
 }
 
 void ARogueGameState::OnRep_EndReason()
 {
-	//Å¬¶ó¿¡¼­ °ª º¯°æ½Ã UI ¹İÀÀ.
+	//í´ë¼ì—ì„œ ê°’ ë³€ê²½ì‹œ UI ë°˜ì‘.
 	OnEndReasonChanged.Broadcast(EndReason);
 }
 
@@ -104,13 +104,13 @@ void ARogueGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 
 void ARogueGameState::NotifyRunActiveChanged_Server()
 {
-	//¼­¹ö ·ÎÄÃ¿¡¼­µµ ÀÌº¥Æ®¸¦ ¹Ş°í ½ÍÀ» ¶§.(¼­¹öµµ ÇÑ ÇÃ·¹ÀÌ¾î Ã³·³ UI°¡ ÀÖÀ» ¼ö ÀÖÀ½.)
+	//ì„œë²„ ë¡œì»¬ì—ì„œë„ ì´ë²¤íŠ¸ë¥¼ ë°›ê³  ì‹¶ì„ ë•Œ.(ì„œë²„ë„ í•œ í”Œë ˆì´ì–´ ì²˜ëŸ¼ UIê°€ ìˆì„ ìˆ˜ ìˆìŒ.)
 	OnRunActiveChanged.Broadcast();
 }
 
 void ARogueGameState::NotifyStageIdChanged_Server()
 {
-	//¼­¹öµµ ·ÎÄÃ¿¡¼­ ÀÌº¥Æ®¸¦ ¹Ş°í ½ÍÀ» ¶§.
+	//ì„œë²„ë„ ë¡œì»¬ì—ì„œ ì´ë²¤íŠ¸ë¥¼ ë°›ê³  ì‹¶ì„ ë•Œ.
 	OnStageIdChanged.Broadcast(CurrentStageId);
 }
 
