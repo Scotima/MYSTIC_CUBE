@@ -1,8 +1,13 @@
 ﻿#include "DemonKing/GameFlow/RogueGameModeBase.h"
 #include "Engine/World.h"
+#include "DemonKing/GameFlow/RogueGameState.h"
 
 ARogueGameModeBase::ARogueGameModeBase()
 {
+
+    GameStateClass = ARogueGameState::StaticClass();
+    
+
     //스테이지 이름 미정일 시 기본 3단계로 고정.
     StageOrder = { FName("Stage_01"), FName("Stage_02"), FName("Stage_03") };
 
@@ -38,7 +43,7 @@ void ARogueGameModeBase::StartRun()
 
     GS->SetStageId(FirstStage);
     GS->SetEndReason(ERogueRunEndReason::None);
-    GS->SetRunActive(true); // 이게 맞나?
+    GS->SetRunActive(true); 
 
     // 첫 스테이지로 트래블.
     ServerTravelToStage(FirstStage);
@@ -104,9 +109,24 @@ void ARogueGameModeBase::EndRun(ERogueRunEndReason Reason)
     }
 }
 
+void ARogueGameModeBase::StartPlay()
+{
+    Super::StartPlay();
+
+    if (AGameStateBase* GS = GetRogueGS())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("GS Class = %s"), *GS->GetClass()->GetName());
+    }
+
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("GS is null at StartPlay"));
+    }
+}
+
 ARogueGameState* ARogueGameModeBase::GetRogueGS() const
 {
-    return GetGameState<ARogueGameState>();;
+    return GetGameState<ARogueGameState>();
 }
 
 FName ARogueGameModeBase::GetNextStageId(const FName& CurrentStageId) const

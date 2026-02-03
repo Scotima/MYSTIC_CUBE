@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "DemonKing/GameFlow/RogueGameState.h"
+#include "DemonKing/GameFlow/RogueRunTypes.h"
 #include "RogueGameModeBase.generated.h"
 
 
@@ -24,6 +24,9 @@ public:
 
 	UFUNCTION(Exec)
 	void EndRun(ERogueRunEndReason Reason);
+
+protected:
+	virtual void StartPlay() override;
 
 protected:
 
