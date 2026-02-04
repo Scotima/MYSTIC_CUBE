@@ -2,9 +2,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "DemonKing/GameFlow/RogueGameState.h"
+#include "DemonKing/GameFlow/RogueRunTypes.h"
 #include "RogueGameModeBase.generated.h"
 
+USTRUCT(BlueprintType)
+struct FStageMapList
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, Category = "Run|Stages")
+	TArray<FName> MapPaths;
+};
 
 
 UCLASS()
@@ -16,6 +24,8 @@ public:
 
 	ARogueGameModeBase();
 
+	//RunFlow (Server only)
+
 	UFUNCTION(Exec)
 	void StartRun();
 
@@ -25,6 +35,15 @@ public:
 	UFUNCTION(Exec)
 	void EndRun(ERogueRunEndReason Reason);
 
+	UFUNCTION(Exec)
+	void AdvanceMapWithinStage();
+
+
+
+
+protected:
+	virtual void StartPlay() override;
+
 protected:
 
 	//로비 /런 맵 경로 (나중에 변경 쉬움.)
@@ -33,7 +52,7 @@ protected:
 
 	//지금은 스테이지가 3개여도 맵은 L_Run 하나로 고정
 	UPROPERTY(EditDefaultsOnly, Category = "Run|Maps")
-	FString DefaultRunMapPath = TEXT("/Game/Maps/L_Run");
+	FString DefaultRunMapPath = TEXT("/Game/Maps/L_Showcase_01");
 
 	//스테이지 ID 목록(이름 미정일 때 기본값.)
 	UPROPERTY(EditDefaultsOnly, Category = "Run|Stages")
@@ -41,16 +60,35 @@ protected:
 	
 	//StageId->MapPath 매핑(스테이지별 맵 생기면 여기만 채우면 됨.)
 	UPROPERTY(EditDefaultsOnly, Category = "Run|Stages")
-	TMap<FName, FString> StageToMapPath;
+	TMap<FName, FStageMapList> StageToMaps;
+
+	//같은 맵이 나올 수 있게 하는 옵션
+	UPROPERTY(EditDefaultsOnly, Category = "Run|Stages")
+	bool bAllowSameMapRepeat = true; //true면 같은 맵도 다시 선택 될 수 있음.
+
+	UPROPERTY(EditDefaultsOnly, Category = "Run|Stages", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float KeepSameMapChance = 0.35f; // 같은 맵 유지 확률 (0~1)
 
 private:
 	class ARogueGameState* GetRogueGS() const;
 
 	FName GetNextStageId(const FName& CurrentStageId) const;
 
-	void ServerTravelToStage(const FName& StageId);
+	//스테이지 + (스테이지 내부 인덱스)로 트래블
+	void ServerTravelToStage(const FName& StageId, int32 StageMapIndex);
 
 	bool EnsureServerAuth(const TCHAR* FuncName) const;
+
+	int32 GetStageOrderIndexSafe(const FName& StageId) const;
+	int32 GenerateRunSeed() const;
+	int32 MakeDeterministicSeed(int32 RunSeed, int32 StageIndex, int32 Step, int32 Salt) const;
+	int32 PickStageMapIndex_Seeded(const FName& StageId, int32 RunSeed, int32 StageIndex, int32 Step, int32 CurrentIndex) const;
+	int32 MakeStageSeed_Seeded(int32 RunSeed, int32 StageIndex, int32 Step) const;
+
+
+
+private:
+	int32 StageStep_Runtime = 0;
 
 
 	
