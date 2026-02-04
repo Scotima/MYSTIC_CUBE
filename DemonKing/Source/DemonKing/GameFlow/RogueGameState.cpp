@@ -59,6 +59,57 @@ void ARogueGameState::SetEndReason(ERogueRunEndReason NewReason)
 	NotifyEndReasonChanged_Server();
 }
 
+void ARogueGameState::SetStageMapIndex(int32 NewIndex)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	const int32 Clamped = FMath::Max(0, NewIndex);
+
+	if (StageMapIndex == Clamped)
+	{
+		return; // 중복 방지.
+	}
+
+	StageMapIndex = Clamped;
+	NotifyStageMapIndexChanged_Server();
+}
+
+void ARogueGameState::SetRunSeed(int32 NewSeed)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (RunSeed == NewSeed)
+	{
+		return; // 중복 방지.
+	}
+
+	RunSeed = NewSeed;
+
+	NotifyRunSeedChanged_Server();
+}
+
+void ARogueGameState::SetStageSeed(int32 NewSeed)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	if (StageSeed == NewSeed)
+	{
+		return; // 중복방지
+	}
+
+	StageSeed = NewSeed;
+	NotifyStageSeedChanged_Server();
+}
+
 void ARogueGameState::ResetRunState()
 {
 	if (!HasAuthority())
@@ -70,9 +121,14 @@ void ARogueGameState::ResetRunState()
 	CurrentStageId = NAME_None;
 	EndReason = ERogueRunEndReason::None;
 
+	StageMapIndex = 0;
+
 	NotifyRunActiveChanged_Server();
 	NotifyStageIdChanged_Server();
 	NotifyEndReasonChanged_Server();
+	NotifyStageMapIndexChanged_Server();
+	NotifyRunSeedChanged_Server();
+	NotifyStageSeedChanged_Server();
 }
 
 void ARogueGameState::OnRep_RunActive()
@@ -93,6 +149,21 @@ void ARogueGameState::OnRep_EndReason()
 	OnEndReasonChanged.Broadcast(EndReason);
 }
 
+void ARogueGameState::OnRep_StageMapIndex()
+{
+	OnStageMapIndexChanged.Broadcast(StageMapIndex);
+}
+
+void ARogueGameState::OnRep_RunSeed()
+{
+	OnRunSeedChanged.Broadcast(RunSeed);
+}
+
+void ARogueGameState::OnRep_StageSeed()
+{
+	OnStageSeedChanged.Broadcast(StageSeed);
+}
+
 void ARogueGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -100,6 +171,10 @@ void ARogueGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(ARogueGameState, bRunActive);
 	DOREPLIFETIME(ARogueGameState, CurrentStageId);
 	DOREPLIFETIME(ARogueGameState, EndReason);
+
+	DOREPLIFETIME(ARogueGameState, StageMapIndex);
+	DOREPLIFETIME(ARogueGameState, RunSeed);
+	DOREPLIFETIME(ARogueGameState, StageSeed);
 }
 
 void ARogueGameState::NotifyRunActiveChanged_Server()
@@ -117,4 +192,19 @@ void ARogueGameState::NotifyStageIdChanged_Server()
 void ARogueGameState::NotifyEndReasonChanged_Server()
 {
 	OnEndReasonChanged.Broadcast(EndReason);
+}
+
+void ARogueGameState::NotifyStageMapIndexChanged_Server()
+{
+	OnStageMapIndexChanged.Broadcast(StageMapIndex);
+}
+
+void ARogueGameState::NotifyRunSeedChanged_Server()
+{
+	OnRunSeedChanged.Broadcast(RunSeed);
+}
+
+void ARogueGameState::NotifyStageSeedChanged_Server()
+{
+	OnStageSeedChanged.Broadcast(StageSeed);
 }
