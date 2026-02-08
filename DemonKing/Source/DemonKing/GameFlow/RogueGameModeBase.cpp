@@ -1,6 +1,8 @@
 ﻿#include "DemonKing/GameFlow/RogueGameModeBase.h"
 #include "Engine/World.h"
 #include "DemonKing/GameFlow/RogueGameState.h"
+#include "DemonKing/SaveGame/RogueSaveSubsystem.h"
+#include "GameFramework/PlayerController.h"
 
 ARogueGameModeBase::ARogueGameModeBase()
 {
@@ -48,37 +50,37 @@ void ARogueGameModeBase::StartRun()
         UE_LOG(LogTemp, Warning, TEXT("StartRun ignored: Run already active."));
         return;
     }
-    // 런 상태 리셋-> 1스테이지 세팅 -> 런 시작.
+
+    APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+    URogueSaveSubsystem* SaveSS = GetSaveSS();
+
+    FName StageId = (StageOrder.Num() > 0) ? StageOrder[0] : FName("Stage_01");
+    int32 StageMapIndex = 0;
+    int32 RunSeed = 0;
+    int32 StageSeed = 0;
+
+    const bool bResumed = (SaveSS) ? SaveSS->LoadOrStartNewRun(PC, StageId, StageMapIndex, RunSeed, StageSeed) : false;
+
     GS->ResetRunState();
-
     StageStep_Runtime = 0;
-    const FName FirstStage = (StageOrder.Num() > 0) ? StageOrder[0] : FName("Stage_01");
-    const int32 StageIndex = GetStageOrderIndexSafe(FirstStage);
-
-    GS->SetStageId(FirstStage);
+    GS->SetStageId(StageId);
     GS->SetEndReason(ERogueRunEndReason::None);
-    GS->SetRunActive(true); 
+    GS->SetRunActive(true);
 
-    //RunSeed: 런 시작 시 1회 생성.
-
-    const int32 RunSeed = GenerateRunSeed();
     GS->SetRunSeed(RunSeed);
-
-    //맵 인덱스:0 고정 순차 증가 -> StageToMaps 후보에서 "시드 기반"으로 선택.
-
-    const int32 PickedMapIndex = PickStageMapIndex_Seeded(FirstStage, RunSeed, StageIndex,StageStep_Runtime,0);
-
-    GS->SetStageMapIndex(PickedMapIndex);
-    
-    //StageSeed: 같은 맵이어도 몬스터/보상 배치가 달라지게 하는게 핵심
-    //스테이지 진입/이동할 때마다 새로 생성.
-    const int32 StageSeed = MakeStageSeed_Seeded(RunSeed, StageIndex, GS->GetStageMapIndex());
+    GS->SetStageMapIndex(StageMapIndex);
     GS->SetStageSeed(StageSeed);
 
 
 
-    // 첫 스테이지로 트래블.
-    ServerTravelToStage(FirstStage, GS->GetStageMapIndex());
+  
+    UE_LOG(LogTemp, Warning, TEXT("StartRun: %s Stage=%s MapIndex=%d RunSeed=%d StageSeed=%d"),
+        bResumed ? TEXT("RESUME") : TEXT("NEW"),
+        *StageId.ToString(), StageMapIndex, RunSeed, StageSeed);
+
+    ServerTravelToStage(StageId, StageMapIndex);
+
+   
 }
 
 void ARogueGameModeBase::AdvanceStage()
@@ -124,7 +126,7 @@ void ARogueGameModeBase::AdvanceStage()
     const int32 StageSeed = MakeStageSeed_Seeded(RunSeed, NextStageIndex, StageStep_Runtime);
     GS->SetStageSeed(StageSeed);
 
-    GS->SetStageMapIndex(0);
+    GS->SetStageMapIndex(GS->GetStageMapIndex());
 
     //다음 스테이지로 트래블(현재는 L_Run 고정)
     ServerTravelToStage(Next, GS->GetStageMapIndex());
@@ -207,6 +209,97 @@ void ARogueGameModeBase::AdvanceMapWithinStage()
     GS->SetStageSeed(StageSeed);
 
     ServerTravelToStage(CurrentStage, GS->GetStageMapIndex());
+
+}
+
+void ARogueGameModeBase::SV_Save()
+{
+    if (!EnsureServerAuth(TEXT("SV_Save")))
+    {
+        return;
+    }
+
+    URogueSaveSubsystem* SaveSS = GetSaveSS();
+    if (!SaveSS)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SV_Save failed: SaveSubsystem not found"));
+        return;
+    }
+
+    APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+
+    SaveSS->SaveOnQuit(PC);
+
+    UE_LOG(LogTemp, Warning, TEXT("SV_Save: Save completed"));
+}
+
+void ARogueGameModeBase::SV_Load()
+{
+    if (!EnsureServerAuth(TEXT("SV_Load")))
+    {
+        return;
+    }
+
+    URogueSaveSubsystem* SaveSS = GetSaveSS();
+
+    if (!SaveSS)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SV_Load failed: SaveSubsystem not found"));
+        return;
+    }
+
+    APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+
+    FName StageId;
+    int32 StageMapIndex;
+    int32 RunSeed;
+    int32 StageSeed;
+
+    const bool bLoaded = SaveSS->LoadOrStartNewRun(PC, StageId, StageMapIndex, RunSeed, StageSeed);
+
+    if (!bLoaded)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SV_Load: No save found, nothing loaded"));
+        return;
+    }
+
+    ARogueGameState* GS = GetRogueGS();
+    StageStep_Runtime = 0;
+
+    GS->SetStageId(StageId);
+    GS->SetRunActive(true);
+    GS->SetEndReason(ERogueRunEndReason::None);
+
+    GS->SetRunSeed(RunSeed);
+    GS->SetStageMapIndex(StageMapIndex);
+    GS->SetStageSeed(StageSeed);
+
+    UE_LOG(LogTemp, Warning, TEXT("SV_Load: Stage = %s MapIndex = %d RunSeed = %d StageSeed = %d "),
+        *StageId.ToString(), StageMapIndex, RunSeed, StageSeed);
+
+    ServerTravelToStage(StageId, StageMapIndex);
+
+
+}
+
+void ARogueGameModeBase::SV_Delete()
+{
+    if (!EnsureServerAuth(TEXT("SV_Delete")))
+    {
+        return;
+    }
+
+    URogueSaveSubsystem* SaveSS = GetSaveSS();
+    if (!SaveSS)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SV_Delete failed: SaveSubsystem not found"));
+        return;
+    }
+
+    SaveSS->DeleteRunSave();
+
+    UE_LOG(LogTemp, Warning, TEXT("SV_Delete: Save deleted"));
+
 
 }
 
@@ -307,7 +400,7 @@ int32 ARogueGameModeBase::MakeDeterministicSeed(int32 RunSeed, int32 StageIndex,
 int32 ARogueGameModeBase::PickStageMapIndex_Seeded(const FName& StageId, int32 RunSeed, int32 StageIndex, int32 Step, int32 CurrentIndex) const
 {
     const FStageMapList* List = StageToMaps.Find(StageId);
-    if (List || List->MapPaths.Num() <= 0)
+    if (!List || List->MapPaths.Num() <= 0)
     {
         return 0;
     }
@@ -342,4 +435,15 @@ int32 ARogueGameModeBase::MakeStageSeed_Seeded(int32 RunSeed, int32 StageIndex, 
 
     FRandomStream Stream(ContentSeed);
     return Stream.RandRange(INT32_MIN, INT32_MAX);
+}
+
+URogueSaveSubsystem* ARogueGameModeBase::GetSaveSS() const
+{
+    if (UGameInstance* GI = GetGameInstance())
+    {
+        return GI->GetSubsystem<URogueSaveSubsystem>();
+
+    }
+
+    return nullptr;
 }
