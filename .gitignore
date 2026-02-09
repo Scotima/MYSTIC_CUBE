@@ -62,3 +62,15 @@ DemonKing/SourceArt/**/*.tga
 # Optional: 개인 테스트용 BP 폴더 (팀 공용이면 삭제!)
 # ===============================
 DemonKing/Content/BPAsset/
+DemonKing/Content/ModularShowcase/Widgets/Buttons
+DemonKing/Content/ModularShowcase/Widgets/Font
+DemonKing/Content/ModularShowcase/Widgets/Images
+DemonKing/Content/ModularShowcase/Widgets/Notifications
+DemonKing/Content/ModularShowcase/Widgets/Settings
+DemonKing/Content/ModularShowcase/Widgets/Showcase
+DemonKing/Content/ModularShowcase/Demo
+DemonKing/Content/ModularShowcase/Maps
+DemonKing/Content/ModularShowcase/Splash
+
+DemonKing/Content/__ExternalActors__
+DemonKing/Content/__ExternalObjects__
