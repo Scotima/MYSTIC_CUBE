@@ -429,7 +429,7 @@ int32 ARogueGameModeBase::PickStageMapIndex_Seeded(const FName& StageId, int32 R
 }
 
 int32 ARogueGameModeBase::MakeStageSeed_Seeded(int32 RunSeed, int32 StageIndex, int32 Step) const
-{
+{ 
     //추가 콘텐츠 배치용 시드
     const int32 ContentSeed = MakeDeterministicSeed(RunSeed, StageIndex, Step, 98765);
 
