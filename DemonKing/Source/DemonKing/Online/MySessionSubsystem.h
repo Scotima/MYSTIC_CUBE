@@ -1,0 +1,53 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Subsystems/GameInstanceSubsystem.h"
+#include "Interfaces/OnlineSessionInterface.h"
+#include "MySessionSubsystem.generated.h"
+
+UENUM(BlueprintType)
+
+enum class ESessionFlowState : uint8
+{
+	Idle,
+	Creating,
+	HostingLobby,
+	Destroying,
+	Error
+};
+
+class IOnlineSubsystem;
+
+
+UCLASS()
+class DEMONKING_API UMySessionSubsystem : public UGameInstanceSubsystem
+{
+	GENERATED_BODY()
+
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Online")
+	bool ESureOssInterfaces();
+
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void MakeSession();
+
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void MakeSessionComplete(FName SessionName, bool bWasSuccessful);
+
+public:
+
+	UPROPERTY(BlueprintReadOnly, Category = "Lobby")
+	FString LobbyMapPath = TEXT("/Game/Maps/L_MainMenu");
+
+
+private:
+	IOnlineSessionPtr OnlineSessionInterface;
+
+	FOnCreateSessionCompleteDelegate OnCreateSessionCompleteDelegate;
+
+	FDelegateHandle CreateSessionCompleteDelegateHandle;
+
+
+
+};
