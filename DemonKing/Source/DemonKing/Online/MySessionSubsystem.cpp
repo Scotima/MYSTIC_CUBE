@@ -2,6 +2,7 @@
 #include "OnlineSubsystem.h"
 #include "Templates/SharedPointer.h"
 #include "OnlineSessionSettings.h"
+#include "Online/OnlineSessionNames.h"
 
 bool UMySessionSubsystem::ESureOssInterfaces()
 {
@@ -92,6 +93,28 @@ void UMySessionSubsystem::MakeSessionComplete(FName SessionName, bool bWasSucces
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Session failed"));
 	}
+}
+
+//https://zeniff.tistory.com/23 코드.
+
+void UMySessionSubsystem::FindSession()
+{
+	if (!OnlineSessionInterface.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GameSession Interface is invailed"));
+		return;
+	}
+
+	OnlineSessionInterface->AddOnFindSessionsCompleteDelegate_Handle(OnFindSessionCompleteDelegate);
+
+	SessionSearch = MakeShareable(new FOnlineSessionSearch());
+	SessionSearch->MaxSearchResults = 100;
+	SessionSearch->bIsLanQuery = true;
+	//SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals); <- 스팀 확장 하면 고치기.
+
+	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+	OnlineSessionInterface->FindSessions(*LocalPlayer->GetPreferredUniqueNetId(), SessionSearch.ToSharedRef());
+
 }
 
 
