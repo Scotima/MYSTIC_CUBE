@@ -38,6 +38,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void FindSession();
 
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void FindSessionComplete(bool bWasSuccessful);
+
 public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Lobby")
@@ -54,6 +57,8 @@ private:
 	TSharedPtr<FOnlineSessionSearch> SessionSearch;
 
 	FOnFindSessionsCompleteDelegate OnFindSessionCompleteDelegate;
+
+	FDelegateHandle FindSessionCompleteDelegateHandle;
 
 
 

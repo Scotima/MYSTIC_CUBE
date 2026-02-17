@@ -99,22 +99,79 @@ void UMySessionSubsystem::MakeSessionComplete(FName SessionName, bool bWasSucces
 
 void UMySessionSubsystem::FindSession()
 {
+
+	if (!ESureOssInterfaces())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("EsureOSSInterfaces() is return false"));
+		return;
+	}
+
 	if (!OnlineSessionInterface.IsValid())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("GameSession Interface is invailed"));
 		return;
 	}
 
-	OnlineSessionInterface->AddOnFindSessionsCompleteDelegate_Handle(OnFindSessionCompleteDelegate);
+
+	const ULocalPlayer* LocalPlayer = GetWorld() ? GetWorld()->GetFirstLocalPlayerFromController() : nullptr;
+
+	if (!LocalPlayer || !LocalPlayer->GetPreferredUniqueNetId().IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("LocalPlayer or UniqueNetId invalid in FindSession"));
+		return;
+	}
+
+	OnFindSessionCompleteDelegate = FOnFindSessionsCompleteDelegate::CreateUObject(this, &UMySessionSubsystem::FindSessionComplete);
+	FindSessionCompleteDelegateHandle = OnlineSessionInterface->AddOnFindSessionsCompleteDelegate_Handle(OnFindSessionCompleteDelegate);
 
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 	SessionSearch->MaxSearchResults = 100;
 	SessionSearch->bIsLanQuery = true;
 	//SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals); <- 스팀 확장 하면 고치기.
 
-	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-	OnlineSessionInterface->FindSessions(*LocalPlayer->GetPreferredUniqueNetId(), SessionSearch.ToSharedRef());
+
+	const bool bFindStarted = OnlineSessionInterface->FindSessions(*LocalPlayer->GetPreferredUniqueNetId(), SessionSearch.ToSharedRef());
+
+	UE_LOG(LogTemp, Warning, TEXT("Find Session Started: %s"), bFindStarted ? TEXT("true") : TEXT("False"));
 
 }
+
+void UMySessionSubsystem::FindSessionComplete(bool bWasSuccessful)
+{
+	if (!OnlineSessionInterface.IsValid() || !bWasSuccessful)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GameSession Interface is invailed or find session was not successful"));
+		return;
+	}
+
+	OnlineSessionInterface->ClearOnFindSessionsCompleteDelegate_Handle(FindSessionCompleteDelegateHandle);
+
+	if (SessionSearch->SearchResults.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SearchResults is Under zero"));
+		return;
+	}
+
+
+	for (auto Result : SessionSearch->SearchResults)
+	{
+		FString id = Result.GetSessionIdStr();
+		FString user = Result.Session.OwningUserName;
+
+		FString MatchType;
+		Result.Session.SessionSettings.Get(FName("MatchType"), MatchType);
+
+		UE_LOG(LogTemp, Warning, TEXT("Session ID : %s / Owner : %s"), *id, *MatchType);
+
+		if (MatchType == FString("FreeForAll"))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("JOIN Match Type : %s"), *MatchType);
+			//joinSession구현
+		}
+
+	}
+}
+
+//todo joinsession구현하기. 갈길이 멀다.
 
 
