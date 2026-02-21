@@ -42,6 +42,9 @@ public:
 	void FindSessionComplete(bool bWasSuccessful);
 
 public:
+	void JoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+
+public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Lobby")
 	FString LobbyMapPath = TEXT("/Game/Maps/L_MainMenu");
@@ -59,6 +62,10 @@ private:
 	FOnFindSessionsCompleteDelegate OnFindSessionCompleteDelegate;
 
 	FDelegateHandle FindSessionCompleteDelegateHandle;
+
+	FOnJoinSessionCompleteDelegate OnJoinSessionCompleteDelegate;
+
+	FDelegateHandle JoinSessionCompleteDelegateHandle;
 
 
 
