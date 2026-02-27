@@ -1,4 +1,4 @@
-#include "DemonKing/Online/MySessionSubsystem.h"
+ï»¿#include "DemonKing/Online/MySessionSubsystem.h"
 #include "OnlineSubsystem.h"
 #include "Templates/SharedPointer.h"
 #include "OnlineSessionSettings.h"
@@ -7,10 +7,11 @@
 
 
 static const FName KEY_MatchType(TEXT("MatchType"));
+static const FName KEY_GameTag(TEXT("GameTag"));
 
 bool UMySessionSubsystem::ESureOssInterfaces()
 {
-	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get(); //¿Â¶óÀÎ ¼­¹ö ¸¸µé ¼ö ÀÖ´Â ±ÇÇÑÀ» °¡Áö°í ÀÖ³ª?
+	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get(); //ì˜¨ë¼ì¸ ì„œë²„ ë§Œë“¤ ìˆ˜ ìžˆëŠ” ê¶Œí•œì„ ê°€ì§€ê³  ìžˆë‚˜?
 
 	if (!OnlineSubsystem)
 	{
@@ -37,7 +38,7 @@ void UMySessionSubsystem::MakeSession()
 		UE_LOG(LogTemp, Warning, TEXT("EsureOSSInterfaces() is return false"));
 		return;
 	}
-	//https://hvvan.tistory.com/274 ÄÚµå.
+	//https://hvvan.tistory.com/274 ì½”ë“œ.
 	const auto ExisitingSession = OnlineSessionInterface->GetNamedSession(NAME_GameSession);
 
 	if (ExisitingSession != nullptr)
@@ -53,19 +54,21 @@ void UMySessionSubsystem::MakeSession()
 
 	CreateSessionCompleteDelegateHandle = OnlineSessionInterface->AddOnCreateSessionCompleteDelegate_Handle(OnCreateSessionCompleteDelegate);
 
-	//¼¼¼Ç ¼¼ÆÃ
+	//ì„¸ì…˜ ì„¸íŒ…
 	TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
 
-	SessionSettings->bIsLANMatch = false; //null Å×½ºÆ®¸¦ À§ÇØ¼­.
+	SessionSettings->bIsLANMatch = false; //null í…ŒìŠ¤íŠ¸ë¥¼ ìœ„í•´ì„œ.
 	SessionSettings->NumPublicConnections = 2;
-	SessionSettings->bAllowJoinInProgress = true; // ¼¼¼Ç ½ÇÇàÁß Âü¿© ¿©ºÎ.
+	SessionSettings->bAllowJoinInProgress = true; // ì„¸ì…˜ ì‹¤í–‰ì¤‘ ì°¸ì—¬ ì—¬ë¶€.
 	SessionSettings->bAllowJoinViaPresence = true; 
-	SessionSettings->bShouldAdvertise = true; // ½ºÆÀÀ» ÅëÇØ ¼¼¼Ç ¾Ë¸².
+	SessionSettings->bShouldAdvertise = true; // ìŠ¤íŒ€ì„ í†µí•´ ì„¸ì…˜ ì•Œë¦¼.
 	SessionSettings->bUsesPresence = true;
-	SessionSettings->bUseLobbiesIfAvailable = true; //·Îºñ »ç¿ë ¿©ºÎ.
+	SessionSettings->bUseLobbiesIfAvailable = true; //ë¡œë¹„ ì‚¬ìš© ì—¬ë¶€.
+	SessionSettings->BuildUniqueId = GetBuildUniqueId();
 	SessionSettings->Set(KEY_MatchType, FString("FreeForAll"), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+	SessionSettings->Set(KEY_GameTag, FString("DemonKing"), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
-	//Session »ý¼º ¿äÃ».
+	//Session ìƒì„± ìš”ì²­.
 	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 
 	if (!LocalPlayer || !LocalPlayer->GetPreferredUniqueNetId().IsValid())
@@ -98,8 +101,9 @@ void UMySessionSubsystem::MakeSessionComplete(FName SessionName, bool bWasSucces
 			return;
 		}
 
+		StartSession();
 	
-		World->ServerTravel(TEXT("/Game/Maps/TESTMAP?listen?port=7777"), false);
+		//World->ServerTravel(TEXT("/Game/Maps/TESTMAP?listen?port=7777"), false);
 
 		
 	}
@@ -110,7 +114,63 @@ void UMySessionSubsystem::MakeSessionComplete(FName SessionName, bool bWasSucces
 	}
 }
 
-//https://zeniff.tistory.com/23 ÄÚµå.
+void UMySessionSubsystem::StartSession()
+{
+	if (!ESureOssInterfaces())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("EsureOSSInterfaces() is return false"));
+		return;
+	}
+
+	OnStartSessionCompleteDelegate = FOnStartSessionCompleteDelegate::CreateUObject(this, &UMySessionSubsystem::StartSessionComplete);
+	StartSessionCompleteDelegateHandle = OnlineSessionInterface->AddOnStartSessionCompleteDelegate_Handle(OnStartSessionCompleteDelegate);
+
+	const bool bStartRequested = OnlineSessionInterface->StartSession(NAME_GameSession);
+
+	UE_LOG(LogTemp, Warning, TEXT("StartSession Requested: %s"), bStartRequested ? TEXT("True") : TEXT("false"));
+
+	if (!bStartRequested)
+	{
+		OnlineSessionInterface->ClearOnStartSessionCompleteDelegate_Handle(StartSessionCompleteDelegateHandle);
+	}
+
+}
+
+
+void UMySessionSubsystem::StartSessionComplete(FName SessionName, bool bWasSuccessful)
+{
+	if (!OnlineSessionInterface.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("StartSession: OnlineSessionInterface is nullptr"));
+		return;
+	}
+
+	OnlineSessionInterface->ClearOnStartSessionCompleteDelegate_Handle(StartSessionCompleteDelegateHandle);
+
+	UE_LOG(LogTemp, Warning, TEXT("StartSessionComplete: %s (Session %s)"), bWasSuccessful ? TEXT("Success") : TEXT("Fail"), *SessionName.ToString());
+
+	if (!bWasSuccessful)
+	{
+		return;
+	}
+
+	SetStartSessionCompleteSuccessful(bWasSuccessful);
+
+
+	OnlineSessionInterface->DumpSessionState();// âœ… (ì¶”ê°€) ì—¬ê¸°ì„œ ì„¸ì…˜ ìƒíƒœ ë¤í”„ ì°ì–´ì„œ Pending/RegisteredPlayers í™•ì¸
+
+	UWorld* world = GetWorld();
+
+	if (!world)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("StartSessionComplete: World null"));
+		return;
+	}
+
+	world->ServerTravel(TEXT("/Game/Maps/TESTMAP?listen"), false);
+}
+
+//https://zeniff.tistory.com/23 ì½”ë“œ.
 
 void UMySessionSubsystem::FindSession()
 {
@@ -142,7 +202,10 @@ void UMySessionSubsystem::FindSession()
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 	SessionSearch->MaxSearchResults = 100;
 	SessionSearch->bIsLanQuery = false;
+	//SessionSearch->QuerySettings.Set(FName("SEARCH_PRESENCE"), true, EOnlineComparisonOp::Equals);
 	SessionSearch->QuerySettings.Set(SEARCH_LOBBIES, true, EOnlineComparisonOp::Equals);
+	SessionSearch->QuerySettings.Set(KEY_MatchType, FString("FreeForAll"), EOnlineComparisonOp::Equals);
+	SessionSearch->QuerySettings.Set(KEY_GameTag, FString("DemonKing"), EOnlineComparisonOp::Equals);
 
 
 	const bool bFindStarted = OnlineSessionInterface->FindSessions(*LocalPlayer->GetPreferredUniqueNetId(), SessionSearch.ToSharedRef());
@@ -158,13 +221,19 @@ void UMySessionSubsystem::FindSession()
 
 void UMySessionSubsystem::FindSessionComplete(bool bWasSuccessful)
 {
+
+	if (OnlineSessionInterface.IsValid())
+	{
+		OnlineSessionInterface->ClearOnFindSessionsCompleteDelegate_Handle(FindSessionCompleteDelegateHandle);
+	}
+
 	if (!OnlineSessionInterface.IsValid() || !bWasSuccessful)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("GameSession Interface is invailed or find session was not successful"));
 		return;
 	}
 
-	OnlineSessionInterface->ClearOnFindSessionsCompleteDelegate_Handle(FindSessionCompleteDelegateHandle);
+	
 
 	if (!SessionSearch.IsValid())
 	{
@@ -254,11 +323,11 @@ void UMySessionSubsystem::JoinSessionComplete(FName SessionName, EOnJoinSessionC
 	{
 
 
-		if (Adress.EndsWith(TEXT(":0")))
+		/*if (Adress.EndsWith(TEXT(":0")))
 		{
 			Adress = Adress.Replace(TEXT(":0"), TEXT(":7777"));
 			UE_LOG(LogTemp, Warning, TEXT("connect String fixed to : %s"), *Adress)
-		}
+		}*/
 
 		UE_LOG(LogTemp, Warning, TEXT("connect String : %s"), *Adress);
 

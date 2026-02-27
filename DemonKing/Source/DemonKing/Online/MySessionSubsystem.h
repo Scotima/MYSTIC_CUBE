@@ -44,6 +44,14 @@ public:
 public:
 	void JoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 
+	void SetStartSessionCompleteSuccessful(bool bwasSuccessful) { StartSessionCompleteSuccessful = bwasSuccessful; }
+
+	bool GetStartSessionCompleteSuccessful() { return StartSessionCompleteSuccessful; }
+
+private:
+	void StartSession();
+	void StartSessionComplete(FName SessionName, bool bwasSuccessful);
+
 public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Lobby")
@@ -66,6 +74,15 @@ private:
 	FOnJoinSessionCompleteDelegate OnJoinSessionCompleteDelegate;
 
 	FDelegateHandle JoinSessionCompleteDelegateHandle;
+
+	FOnStartSessionCompleteDelegate OnStartSessionCompleteDelegate;
+
+	FDelegateHandle StartSessionCompleteDelegateHandle;
+
+
+
+private:
+	bool StartSessionCompleteSuccessful = false;
 
 
 
