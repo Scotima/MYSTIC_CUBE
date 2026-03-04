@@ -4,7 +4,7 @@
 #include "Engine/GameInstance.h"
 #include "MyGameInstance.generated.h"
 
-class URogueSaveSubSystem;
+class URogueSaveSubsystem;
 
 UCLASS()
 class DEMONKING_API UMyGameInstance : public UGameInstance
@@ -20,11 +20,11 @@ public:
 	void RequestSaveAndLeaveToLobby();
 
 private:
-	URogueSaveSubSystem* GetSaveSS();
+	URogueSaveSubsystem* GetSaveSS();
 
-	bool BeSaveSS(URogueSaveSubSystem* savess);
+	bool BeSaveSS(URogueSaveSubsystem* savess);
 
 
 private:
-	URogueSaveSubSystem* SaveSS;
+	URogueSaveSubsystem* SaveSS;
 };

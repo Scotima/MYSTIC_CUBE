@@ -8,7 +8,18 @@ void UMyGameInstance::RequestContinueRun()
 
 	if (!BeSaveSS(SaveSS))
 	{
-		//UE_LOG(LogTemp)
+		return;
+	}
+
+	APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+	FName StageId;
+	int32 StageMapIndex;
+	int32 RunSeed;
+	int32 StageSeed;
+
+	if (SaveSS->LoadOrStartNewRun(PC, StageId, StageMapIndex, RunSeed, StageSeed))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("SaveLoadTrue"));
 	}
 
 
@@ -16,22 +27,34 @@ void UMyGameInstance::RequestContinueRun()
 
 void UMyGameInstance::RequestSaveAndLeaveToLobby()
 {
+	APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+
+	SaveSS = GetSaveSS();
+
+	SaveSS->SaveOnQuit(PC);
+
+	UGameplayStatics::OpenLevel(GetWorld(), TEXT("/Game/Maps/L_MainMenu"));
 }
 
-URogueSaveSubSystem* UMyGameInstance::GetSaveSS()
+URogueSaveSubsystem* UMyGameInstance::GetSaveSS()
 {
-	//return GetSubsystem<URogueSaveSubSystem>();
-	return nullptr;
+	return GetSubsystem<URogueSaveSubsystem>();
+	
 }
 
-bool UMyGameInstance::BeSaveSS(URogueSaveSubSystem* savess)
+bool UMyGameInstance::BeSaveSS(URogueSaveSubsystem* savess)
 {
 	if (savess == nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT(" "))
+		UE_LOG(LogTemp, Warning, TEXT("SaveSS is nullptr"));
+		return false;
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("SaveSS exist"));
+	
 	return true;
+
+
 }
 
 
