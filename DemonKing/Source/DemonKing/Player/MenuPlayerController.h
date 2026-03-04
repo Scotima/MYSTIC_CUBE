@@ -32,6 +32,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	void ShowMenuWidget();
+
 
 private:
 	UMySessionSubsystem* GetMSS();
@@ -40,8 +42,14 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "UI")
 	TSubclassOf<UUserWidget> TestWidgetClass;
 
+	UPROPERTY(BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UUserWidget> MainMenuWidgetClass;
+
 	UPROPERTY()
 	UUserWidget* TestWidget;
+
+	UPROPERTY()
+	UUserWidget* MainMenuWidget;
 
 private:
 	UPROPERTY()

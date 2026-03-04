@@ -7,6 +7,9 @@
 ARogueGameModeBase::ARogueGameModeBase()
 {
 
+    bUseSeamlessTravel = true;
+
+
     GameStateClass = ARogueGameState::StaticClass();
     
 
@@ -307,14 +310,54 @@ void ARogueGameModeBase::StartPlay()
 {
     Super::StartPlay();
 
-    if (AGameStateBase* GS = GetRogueGS())
+    UWorld* World = GetWorld();
+    if (!World)
     {
-        UE_LOG(LogTemp, Warning, TEXT("GS Class = %s"), *GS->GetClass()->GetName());
+        UE_LOG(LogTemp, Warning, TEXT("[GM StartPlay] World=null"));
+        return;
     }
 
+    // ✅ [추가] 월드/맵/넷모드/URL
+    UE_LOG(LogTemp, Warning, TEXT("[GM StartPlay] Map=%s World=%s NetMode=%d URL=%s"),
+        *World->GetMapName(),
+        *World->GetName(),
+        (int32)World->GetNetMode(),
+        *World->URL.ToString());
+
+    // ✅ [추가] GameMode 클래스 확인 (BP로 올라왔는지)
+    UE_LOG(LogTemp, Warning, TEXT("[GM StartPlay] GameModeClass=%s"), *GetClass()->GetName());
+
+    // ✅ [추가] SeamlessTravel 여부 (PC 유지되는지 원인 확인)
+    UE_LOG(LogTemp, Warning, TEXT("[GM StartPlay] bUseSeamlessTravel=%s"),
+        bUseSeamlessTravel ? TEXT("true") : TEXT("false"));
+
+    // ✅ [추가] PC 상태 확인 (MenuPC가 유지되는지 + LocalPlayer 붙었는지)
+    if (APlayerController* PC = World->GetFirstPlayerController())
+    {
+        const bool bHasPlayer = (PC->Player != nullptr); // UPlayer* (LocalPlayer면 여기 들어옴)
+        UE_LOG(LogTemp, Warning, TEXT("[GM StartPlay] FirstPC=%s HasPlayer=%s IsLocal=%s"),
+            *PC->GetClass()->GetName(),
+            bHasPlayer ? TEXT("true") : TEXT("false"),
+            PC->IsLocalController() ? TEXT("true") : TEXT("false"));
+
+        // ✅ [추가] Pawn 존재 여부
+        APawn* Pawn = PC->GetPawn();
+        UE_LOG(LogTemp, Warning, TEXT("[GM StartPlay] PC Pawn=%s"),
+            Pawn ? *Pawn->GetName() : TEXT("null"));
+    }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("GS is null at StartPlay"));
+        UE_LOG(LogTemp, Warning, TEXT("[GM StartPlay] FirstPlayerController=null"));
+    }
+
+    // (원래 마스터 코드에 있던 GS 로그도 유지 가능)
+    if (AGameStateBase* GS = GetRogueGS())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[GM StartPlay] GS Class=%s"), *GS->GetClass()->GetName());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("[GM StartPlay] GS is null"));
     }
 }
 

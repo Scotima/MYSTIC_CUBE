@@ -12,19 +12,46 @@ AMenuPlayerController::AMenuPlayerController()
 	{
 		TestWidgetClass = Widget.Class;
 	}
+
+	ConstructorHelpers::FClassFinder<UUserWidget> MainWidget(TEXT("/Game/ModularShowcase/Widgets/MainMenu/WBP_MainMenu"));
+
+	if (MainWidget.Succeeded())
+	{
+		MainMenuWidgetClass = MainWidget.Class;
+	}
 }
 
 void AMenuPlayerController::BeginPlay()
 {
 	bShowMouseCursor = true;
 
-	TestWidget = CreateWidget(this, TestWidgetClass);
-	
-	TestWidget->AddToViewport();
+	//ShowMenuWidget();
+
+	MakeMultiRoom();
+
+}
+
+void AMenuPlayerController::ShowMenuWidget()
+{
+	if (MainMenuWidget != nullptr)
+	{
+		MainMenuWidget->RemoveFromParent();
+		MainMenuWidget = nullptr;
+		return;
+	}
+
+	if (MainMenuWidgetClass == nullptr)
+	{
+		return;
+	}
+
+	MainMenuWidget = CreateWidget(this, MainMenuWidgetClass);
+	MainMenuWidget->AddToViewport();
 }
 
 void AMenuPlayerController::MakeMultiRoom()
 {
+
 	MSS = GetMSS();
 
 	if (!MSS)
@@ -33,9 +60,20 @@ void AMenuPlayerController::MakeMultiRoom()
 		return;
 	}
 
-	MSS->MakeSession();
+	//MSS->MakeSession();
 
 	bWasSuccessful = MSS->GetStartSessionCompleteSuccessful();
+
+
+	TestWidget = CreateWidget(this, TestWidgetClass);
+
+
+	if (TestWidget != nullptr)
+	{
+		TestWidget->AddToViewport();
+	}
+
+
 
 	
 }
@@ -63,6 +101,7 @@ void AMenuPlayerController::Server_RequestStartRun_Implementation()
 	if (!bWasSuccessful)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("StartSession not successful"));
+		return;
 	}
 
 	if (ARogueGameModeBase* GM = GetWorld()->GetAuthGameMode<ARogueGameModeBase>())
