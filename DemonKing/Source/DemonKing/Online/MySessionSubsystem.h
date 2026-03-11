@@ -19,6 +19,7 @@ enum class ESessionFlowState : uint8
 class IOnlineSubsystem;
 
 
+
 UCLASS()
 class DEMONKING_API UMySessionSubsystem : public UGameInstanceSubsystem
 {
@@ -41,12 +42,26 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void FindSessionComplete(bool bWasSuccessful);
 
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void OnSessionUserInviteAccept();
+
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void ShowInviteUI();
+
+
+	
+
+
+
 public:
 	void JoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 
 	void SetStartSessionCompleteSuccessful(bool bwasSuccessful) { StartSessionCompleteSuccessful = bwasSuccessful; }
 
 	bool GetStartSessionCompleteSuccessful() { return StartSessionCompleteSuccessful; }
+
+	void OnSessionUserInviteAccepted(const bool bWasSuccess, const int32 ControllerId, FUniqueNetIdPtr UserId, const FOnlineSessionSearchResult& InviteResult);
+
 
 private:
 	void StartSession();
@@ -78,6 +93,12 @@ private:
 	FOnStartSessionCompleteDelegate OnStartSessionCompleteDelegate;
 
 	FDelegateHandle StartSessionCompleteDelegateHandle;
+
+	FOnSessionUserInviteAcceptedDelegate OnSessionUserInviteAcceptedDelegate;
+	FDelegateHandle SessionUserInviteAcceptedDelegateHandle;
+
+
+	class IOnlineSubsystem* onlinesubsystem = nullptr;
 
 
 
