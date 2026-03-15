@@ -168,7 +168,7 @@ void UMySessionSubsystem::StartSessionComplete(FName SessionName, bool bWasSucce
 		return;
 	}
 
-	world->ServerTravel(TEXT("/Game/Maps/TESTMAP?listen"), false);
+	world->ServerTravel(TEXT("/Game/Maps/L_Lobby?listen"), false);
 }
 
 //https://zeniff.tistory.com/23 코드.
