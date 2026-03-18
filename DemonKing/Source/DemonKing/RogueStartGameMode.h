@@ -1,0 +1,47 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/GameModeBase.h"
+#include "RogueStartGameMode.generated.h"
+
+class AController;
+class APawn;
+class AActor;
+class APlayerController;
+
+UCLASS()
+class DEMONKING_API ARogueStartGameMode : public AGameModeBase
+{
+	GENERATED_BODY()
+
+public:
+	ARogueStartGameMode();
+
+protected:
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+	virtual APawn* SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform) override;
+
+	UFUNCTION()
+	void TrySpawnPendingPlayer();
+
+	bool FindGroundedSpawnTransform(FTransform& OutTransform) const;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn")
+	float TraceStartZOffset = 500.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn")
+	float TraceEndZOffset = 5000.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn")
+	float SpawnZOffset = 300.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn")
+	float SpawnRetryInterval = 0.05f;
+
+	UPROPERTY()
+	TObjectPtr<APlayerController> PendingPlayerController;
+
+	FTimerHandle SpawnRetryTimerHandle;
+};
