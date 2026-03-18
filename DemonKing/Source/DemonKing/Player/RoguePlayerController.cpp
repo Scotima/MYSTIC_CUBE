@@ -4,6 +4,11 @@
 #include "Blueprint/UserWidget.h"
 #include "DemonKing/RogueHUD/RogueHUD.h"
 #include "DemonKing/GameFlow/RogueGameModeBase.h"
+#include "OnlineSubsystem.h"
+#include "Interfaces/OnlineIdentityInterface.h"
+#include "Engine/LocalPlayer.h"
+#include "DemonKing/GameFlow/RoguePlayerState.h"
+
 
 ARoguePlayerController::ARoguePlayerController()
 {
@@ -66,6 +71,7 @@ void ARoguePlayerController::AfterChangeWorldMap(UWorld* LoadedWorld)
 	UpdateWorldName();
 }
 
+
 void ARoguePlayerController::SetupInputComponent()
 {
 
@@ -126,6 +132,8 @@ void ARoguePlayerController::OnJumpReleased()
 
 void ARoguePlayerController::ApplyMode(ETypeControll controll)
 {
+
+	UE_LOG(LogTemp, Warning, TEXT("[ARoguePlayerController::ApplyMode]"));
 	 Mode = controll;
 
 	 if (!IsLocalController()) return;
@@ -154,6 +162,7 @@ void ARoguePlayerController::ApplyMode(ETypeControll controll)
 		{
 			hud->ShowStartGameWidget();
 		}
+		SubmitMyLobbyNickName();
 		break;
 	}
 
@@ -181,7 +190,7 @@ void ARoguePlayerController::UpdateWorldName()
 
 	}
 
-	else if (mapname == TEXT("TESTMAP"))
+	else if (mapname == TEXT("L_Lobby"))
 	{
 		ApplyMode(ETypeControll::Lobby);
 	}
@@ -191,6 +200,78 @@ void ARoguePlayerController::UpdateWorldName()
 		ApplyMode(ETypeControll::Game);
 	}
 
+}
+
+FString ARoguePlayerController::GetPlayerNickName()
+{
+	ULocalPlayer* player = GetLocalPlayer();
+
+	if (player)
+	{
+		FUniqueNetIdRepl nickname = player->GetPreferredUniqueNetId();
+
+		if (nickname.IsValid())
+		{
+			
+			IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
+
+			if (!OnlineSubsystem)
+			{
+				return FString();
+			}
+
+			IOnlineIdentityPtr identity = OnlineSubsystem->GetIdentityInterface();
+
+			if (!identity)
+			{
+				return FString();
+			}
+
+			FUniqueNetIdPtr uniqueNetid = nickname.GetUniqueNetId();
+
+			if (!uniqueNetid)
+			{
+				return FString();
+			}
+
+			return identity->GetPlayerNickname(*uniqueNetid);
+
+				
+		}
+	}
+
+	return FString();
+}
+
+void ARoguePlayerController::SubmitMyLobbyNickName()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[ARoguePlayerController::SubmitMyLobbyNickName]"));
+
+	FString NewNicKName = GetPlayerNickName();
+
+	if (!NewNicKName.IsEmpty())
+	{
+		Server_SetLobbyNickName(NewNicKName);
+	}
+}
+
+void ARoguePlayerController::Server_SetLobbyNickName_Implementation(const FString& newname)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	ARoguePlayerState* RoguePS = GetPlayerState<ARoguePlayerState>();
+
+	if (!RoguePS)
+	{
+		return;
+	}
+
+	FString NewNickName = newname;
+
+	RoguePS->SetLobbyPlayerNickName(NewNickName);
 }
 
 void ARoguePlayerController::Server_RequestStartRun_Implementation()

@@ -1,0 +1,32 @@
+#include "DemonKing/GameFlow/RoguePlayerState.h"
+#include "Net/UnrealNetwork.h"
+ARoguePlayerState::ARoguePlayerState()
+{
+	bReplicates = true;
+}
+
+void ARoguePlayerState::SetLobbyPlayerNickName(FString& NickName)
+{
+	if (!HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ARoguePlayerState::SetLobbyPlayerNickName] !HasAuthority"));
+		return;
+	}
+	PlayerNickName = NickName;
+}
+
+FString ARoguePlayerState::GetLobbyPlayerNickName()
+{
+	return PlayerNickName;
+}
+
+void ARoguePlayerState::OnRep_PlayerNickName()
+{
+	OnLobbyNickNameChanged.Broadcast(PlayerNickName);
+}
+
+void ARoguePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ARoguePlayerState, PlayerNickName);
+}
