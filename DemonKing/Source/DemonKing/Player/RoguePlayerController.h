@@ -47,6 +47,9 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void Server_RequestStartRun();
 
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void Server_SetLobbyNickName(const FString& newname);
+
 private:
 	virtual void SetupInputComponent() override;
 
@@ -66,6 +69,12 @@ private:
 
 	UFUNCTION()
 	void UpdateWorldName();
+
+	UFUNCTION()
+	FString GetPlayerNickName();
+
+	UFUNCTION()
+	void SubmitMyLobbyNickName();
 
 public:
 
