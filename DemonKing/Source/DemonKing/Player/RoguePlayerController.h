@@ -76,6 +76,9 @@ private:
 	UFUNCTION()
 	void SubmitMyLobbyNickName();
 
+	UFUNCTION()
+	void BackToLobby(bool bWasSuccessful);
+
 public:
 
 private:

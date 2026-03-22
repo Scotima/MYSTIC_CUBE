@@ -45,7 +45,7 @@ void UMySessionSubsystem::MakeSession()
 	if (ExisitingSession != nullptr)
 	{
 		OnlineSessionInterface->DestroySession(NAME_GameSession);
-		UE_LOG(LogTemp, Warning, TEXT("ExisitingSession Found. Destory Requested. TryAgain"));
+		UE_LOG(LogTemp, Warning, TEXT("ExisitingSession Found. Destroy Requested. TryAgain"));
 		return;
 	}
 	
@@ -435,6 +435,54 @@ void UMySessionSubsystem::ShowInviteUI()
 
 	
 	
+}
+
+void UMySessionSubsystem::ReturnToLobby()
+{
+	if (!ESureOssInterfaces())
+	{
+		return;
+	}
+
+	const auto ExisitingSession = OnlineSessionInterface->GetNamedSession(NAME_GameSession);
+
+	if (ExisitingSession != nullptr)
+	{
+		OnDestroySessionCompleteDelegate = FOnDestroySessionCompleteDelegate::CreateUObject(this,&UMySessionSubsystem::ReturnToLobbyComplete);
+		DestroySessionCompleteDelegateHandle = OnlineSessionInterface->AddOnDestroySessionCompleteDelegate_Handle(OnDestroySessionCompleteDelegate);
+
+
+		bool bDestroyed = OnlineSessionInterface->DestroySession(NAME_GameSession);
+
+		if (!bDestroyed)
+		{
+			OnlineSessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegateHandle);
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("ExisitingSession Found. Destroy Requested. TryAgain"));
+		return;
+	}
+
+}
+
+void UMySessionSubsystem::ReturnToLobbyComplete(FName SessionName, bool bWasSuccessful)
+{
+	if (!bWasSuccessful)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UMySessionSubsystem::ReturnToLobbyComplete] !bWasSuccessful"));
+		return;
+	}
+
+
+	if (!OnlineSessionInterface.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[[UMySessionSubsystem::ReturnToLobbyComplete]] !OnlineSessionInterface.IsValid"));
+		return;
+	}
+	
+	OnSessionDestroyComplete.Broadcast(bWasSuccessful);
+
+	OnlineSessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegateHandle);
 }
 
 

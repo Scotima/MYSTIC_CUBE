@@ -8,6 +8,7 @@
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "Engine/LocalPlayer.h"
 #include "DemonKing/GameFlow/RoguePlayerState.h"
+#include "DemonKing/Online/MySessionSubsystem.h"
 
 
 ARoguePlayerController::ARoguePlayerController()
@@ -24,7 +25,14 @@ void ARoguePlayerController::BeginPlay()
 
 	UpdateWorldName();
 	FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &ARoguePlayerController::AfterChangeWorldMap);
-	
+
+
+	UMySessionSubsystem* mySubsystem = GetGameInstance()? GetGameInstance()->GetSubsystem<UMySessionSubsystem>() : nullptr;
+
+	if (mySubsystem)
+	{
+		mySubsystem->OnSessionDestroyComplete.AddDynamic(this, &ARoguePlayerController::BackToLobby);
+	}
 
 }
 
@@ -253,6 +261,12 @@ void ARoguePlayerController::SubmitMyLobbyNickName()
 	{
 		Server_SetLobbyNickName(NewNicKName);
 	}
+}
+
+void ARoguePlayerController::BackToLobby(bool bWasSuccessful)
+{
+	UE_LOG(LogTemp, Warning, TEXT("bWasSuccessful = %s"), bWasSuccessful ? TEXT("true") : TEXT("False"));
+	this->ClientTravel("/Game/Maps/L_MainMenu", TRAVEL_Absolute);
 }
 
 void ARoguePlayerController::Server_SetLobbyNickName_Implementation(const FString& newname)
