@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "DemonKing/GameFlow/RogueGameModeBase.h"
 #include "RogueStartGameMode.generated.h"
 
 class AController;
@@ -10,7 +11,7 @@ class AActor;
 class APlayerController;
 
 UCLASS()
-class DEMONKING_API ARogueStartGameMode : public AGameModeBase
+class DEMONKING_API ARogueStartGameMode : public ARogueGameModeBase
 {
 	GENERATED_BODY()
 
