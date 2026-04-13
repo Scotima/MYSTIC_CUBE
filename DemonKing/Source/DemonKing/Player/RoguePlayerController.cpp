@@ -138,6 +138,11 @@ void ARoguePlayerController::OnJumpReleased()
 	C->StopJumping();
 }
 
+void ARoguePlayerController::OnMouseLeftClick()
+{
+
+}
+
 void ARoguePlayerController::ApplyMode(ETypeControll controll)
 {
 
