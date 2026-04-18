@@ -3,6 +3,8 @@
 #include "DemonKing/CCharacter/RogueCharacterBase.h"
 #include "CKnight.generated.h"
 
+class UNiagaraComponent;
+
 
 UCLASS()
 class DEMONKING_API ACKnight : public ARogueCharacterBase
@@ -12,12 +14,21 @@ class DEMONKING_API ACKnight : public ARogueCharacterBase
 
 public:
 	ACKnight();
-
+	
 	UFUNCTION(BlueprintCallable)
 	void StartNiagaraImpact(class UNiagaraSystem* niagaraSystem, FName Socketname);
 
 	UFUNCTION(BlueprintCallable)
 	void EndNiagaraImpact();
+
+public:
+	virtual void InputSkillLeftMouse() override;
+	
+	
+
+public:
+	UNiagaraComponent* SpawnNiagaraSystem(class UNiagaraSystem* niagarasystem);
+	float PlaySkillMotion(class UAnimMontage* animmontage, float PlayRate = 1.0f);
 
 
 protected:
@@ -28,6 +39,6 @@ protected:
 	FName WeaponSocketName = TEXT("hand_r_Socket");
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Niagara")
-	TObjectPtr<class UNiagaraComponent> NiagaraComponent;
+	TObjectPtr<UNiagaraComponent> NiagaraComponent;
 	
 };

@@ -31,6 +31,7 @@ public:
 	virtual void InputSkillQ();
 	virtual void InputSkillE();
 	virtual void InputSkillShift();
+	virtual void InputSkillLeftMouse();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera")

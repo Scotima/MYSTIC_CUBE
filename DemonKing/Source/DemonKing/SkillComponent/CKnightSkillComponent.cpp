@@ -1,6 +1,8 @@
 #include "DemonKing/SkillComponent/CKnightSkillComponent.h"
 #include "TimerManager.h"
 #include "DemonKing/CCharacter/CKnight.h"
+#include "Animation/AnimMontage.h"
+#include "UObject/ConstructorHelpers.h"
 
 
 UCKnightSkillComponent::UCKnightSkillComponent()
@@ -30,7 +32,24 @@ void UCKnightSkillComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UCKnightSkillComponent::UseSkill(FName skillname)
 {
-	float coolTime = GetSkillDataTable(skillname)->CoolDown;
+	FCharacterSkillStruct* SkillData = GetSkillDataTable(skillname);
+
+	if (!SkillData)
+	{
+		return;
+	}
+
+	FName MontagePath = SkillData->Montage;
+	float coolTime = SkillData->CoolDown;
+	float SkillDamage = SkillData->Damage;
+
+	UAnimMontage* animMontage = LoadObject<UAnimMontage>(nullptr, *MontagePath.ToString());
+
+	if (!animMontage)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCKnightSkillComponent::UseSkill] animMontage is nullptr"));
+		return;
+	}
 
 	if (bUseSkill)
 	{
@@ -38,8 +57,10 @@ void UCKnightSkillComponent::UseSkill(FName skillname)
 
 		if (OwnerCharacter)
 		{
+			OwnerCharacter->PlaySkillMotion(animMontage); // 스킬 애니메이션 구현.
 			GetWorld()->GetTimerManager().SetTimer(timerhandle, this, &UCKnightSkillComponent::CoolDownSystem, coolTime, false, 1.0);
-			//스킬 애니메이션 구현.
+			
+
 		}
 	}
 }
