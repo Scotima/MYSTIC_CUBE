@@ -5,9 +5,11 @@
 #include "NiagaraComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
+#include "DemonKing/SkillComponent/CKnightSkillComponent.h"
 ACKnight::ACKnight()
 {
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
+	KnightSkillComponent = CreateDefaultSubobject<UCKnightSkillComponent>(TEXT("KnightSkillComponent"));
 
 	
 	
@@ -47,6 +49,8 @@ void ACKnight::EndNiagaraImpact()
 void ACKnight::InputSkillLeftMouse()
 {
 	// 여기서 스킬 컴포넌트 호출해서 useskill사용하기.
+	KnightSkillComponent->UseSkill(TEXT("NormalAttack"));
+
 }
 
 UNiagaraComponent* ACKnight::SpawnNiagaraSystem(UNiagaraSystem* niagarasystem)

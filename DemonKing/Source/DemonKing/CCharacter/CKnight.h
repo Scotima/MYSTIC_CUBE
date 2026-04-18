@@ -40,5 +40,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Niagara")
 	TObjectPtr<UNiagaraComponent> NiagaraComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SkillComponent")
+	TObjectPtr<class UCKnightSkillComponent> KnightSkillComponent;
+
 	
 };

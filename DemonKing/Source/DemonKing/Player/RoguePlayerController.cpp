@@ -9,6 +9,7 @@
 #include "Engine/LocalPlayer.h"
 #include "DemonKing/GameFlow/RoguePlayerState.h"
 #include "DemonKing/Online/MySessionSubsystem.h"
+#include "DemonKing/CCharacter/RogueCharacterBase.h"
 
 
 ARoguePlayerController::ARoguePlayerController()
@@ -33,6 +34,8 @@ void ARoguePlayerController::BeginPlay()
 	{
 		mySubsystem->OnSessionDestroyComplete.AddDynamic(this, &ARoguePlayerController::BackToLobby);
 	}
+
+	characterBase = Cast<ARogueCharacterBase>(GetPawn());
 
 }
 
@@ -90,6 +93,8 @@ void ARoguePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Jump", IE_Pressed, this, &ARoguePlayerController::OnJumpPressed);
 	InputComponent->BindAction("Jump", IE_Released, this, &ARoguePlayerController::OnJumpReleased);
 
+	InputComponent->BindAction("Autoattack", IE_Pressed, this, &ARoguePlayerController::OnMouseLeftClick);
+
 
 }
 
@@ -140,7 +145,14 @@ void ARoguePlayerController::OnJumpReleased()
 
 void ARoguePlayerController::OnMouseLeftClick()
 {
+	if (!characterBase)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
+		return;
+	}
 
+
+	characterBase->InputSkillLeftMouse();
 }
 
 void ARoguePlayerController::ApplyMode(ETypeControll controll)

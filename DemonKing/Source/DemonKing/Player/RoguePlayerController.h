@@ -97,6 +97,10 @@ private:
 	UPROPERTY()
 	UUserWidget* StartGameWidget;
 
+	UPROPERTY()
+	TObjectPtr<class ARogueCharacterBase> characterBase;
+
+
 private:
 	ETypeControll Mode = ETypeControll::Main;	
 	

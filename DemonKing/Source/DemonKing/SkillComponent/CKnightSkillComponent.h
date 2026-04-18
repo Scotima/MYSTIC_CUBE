@@ -37,7 +37,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class ACKnight> OwnerCharacter;
 
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "DataTable")
 	TObjectPtr<UDataTable> SkillDataTable;
 
 
