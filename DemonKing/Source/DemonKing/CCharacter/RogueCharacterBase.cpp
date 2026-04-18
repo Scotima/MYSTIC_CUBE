@@ -68,4 +68,9 @@ void ARogueCharacterBase::InputSkillShift()
 	//자식에서 재정의
 }
 
+void ARogueCharacterBase::InputSkillLeftMouse()
+{
+	//자식에서 재정의 하겠습니다.
+}
+
 

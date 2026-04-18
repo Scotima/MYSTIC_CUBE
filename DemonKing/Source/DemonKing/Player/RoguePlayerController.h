@@ -61,6 +61,8 @@ private:
 	void OnJumpPressed();
 	void OnJumpReleased();
 
+	void OnMouseLeftClick();
+
 
 private:
 
