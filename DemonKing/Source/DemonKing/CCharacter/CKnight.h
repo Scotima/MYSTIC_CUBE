@@ -27,7 +27,8 @@ public:
 	
 
 public:
-	UNiagaraComponent* SpawnNiagaraSystem(class UNiagaraSystem* niagarasystem);
+	UNiagaraComponent* SpawnNiagaraSystem(class UNiagaraSystem* niagarasystem, FName SocketName = NAME_None, FVector LocationOffset = FVector::ZeroVector,
+		FRotator RotationOffset = FRotator::ZeroRotator, FVector Scale = FVector(1.0, 1.0, 1.0));
 	float PlaySkillMotion(class UAnimMontage* animmontage, float PlayRate = 1.0f);
 
 

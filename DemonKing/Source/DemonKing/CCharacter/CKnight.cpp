@@ -53,7 +53,8 @@ void ACKnight::InputSkillLeftMouse()
 
 }
 
-UNiagaraComponent* ACKnight::SpawnNiagaraSystem(UNiagaraSystem* niagarasystem)
+UNiagaraComponent* ACKnight::SpawnNiagaraSystem(UNiagaraSystem* niagarasystem, FName SocketName, FVector LocationOffset,
+	FRotator RotationOffset, FVector Scale)
 {
 	if (!niagarasystem)
 	{
@@ -74,12 +75,17 @@ UNiagaraComponent* ACKnight::SpawnNiagaraSystem(UNiagaraSystem* niagarasystem)
 		return nullptr;
 	}
 
+	const FTransform BaseTrans = SocketName != NAME_None ? meshComp->GetSocketTransform(SocketName, RTS_World) : meshComp->GetComponentTransform();
+
+	FVector SpawnLocation = BaseTrans.TransformPosition(LocationOffset);//소켓 위치 기준으로 위치조정.
+	FQuat SpawnQut = BaseTrans.GetRotation() * RotationOffset.Quaternion();
+	FRotator SpawnRotation = SpawnQut.Rotator();
+
 
 
 	FTransform KnightTransform = meshComp->GetComponentTransform();
 
-	return UNiagaraFunctionLibrary::SpawnSystemAtLocation(world, niagarasystem, KnightTransform.GetLocation(),
-		KnightTransform.GetRotation().Rotator(), KnightTransform.GetScale3D(), true, true);
+	return UNiagaraFunctionLibrary::SpawnSystemAtLocation(world, niagarasystem, SpawnLocation, SpawnRotation, Scale, true, true);
 
 
 }

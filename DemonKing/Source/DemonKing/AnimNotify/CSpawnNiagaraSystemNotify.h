@@ -1,5 +1,4 @@
 #pragma once
-
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 #include "CSpawnNiagaraSystemNotify.generated.h"
@@ -15,8 +14,21 @@ public:
 
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "NiagaraSystem")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NiagaraSystem")
 	TObjectPtr<class UNiagaraSystem> niagaraSystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NiagaraSystem")
+	FName SocketName = NAME_None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NiagaraSystem")
+	FVector LocationOffset = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NiagaraSystem")
+	FRotator RotationOffset = FRotator::ZeroRotator;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NiagaraSystem")
+	FVector Scale = FVector(1.0f, 1.0f, 1.0f);
+
 
 	UPROPERTY()
 	TObjectPtr<class ACKnight> Knight;

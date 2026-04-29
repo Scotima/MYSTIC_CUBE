@@ -12,7 +12,7 @@ void UCSpawnNiagaraSystemNotify::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 
 		if (niagaraSystem)
 		{
-			Knight->SpawnNiagaraSystem(niagaraSystem);
+			Knight->SpawnNiagaraSystem(niagaraSystem, SocketName, LocationOffset, RotationOffset, Scale);
 
 		}
 	}
