@@ -33,6 +33,9 @@ public:
 	virtual void InputSkillShift();
 	virtual void InputSkillLeftMouse();
 
+	FORCEINLINE void SetUsingSkill(bool a) { bUsingSkill = a; }
+	FORCEINLINE bool GetUsingSkill() { return bUsingSkill; }
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera")
 	TObjectPtr<class UCameraComponent> Camera;
@@ -40,4 +43,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera")
 	TObjectPtr<class USpringArmComponent> SpringArm;
 
+
+protected:
+	bool bUsingSkill = false;
 };

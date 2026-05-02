@@ -30,20 +30,23 @@ void UCKnightSkillComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	
 }
 
-void UCKnightSkillComponent::UseSkill(FName skillname)
+void UCKnightSkillComponent::UseSkill(int SkillID, int32 ComboIndex)
 {
-	FCharacterSkillStruct* SkillData = GetSkillDataTable(skillname);
+	SkillID += ComboIndex;
+	FName SkillName = FName(*FString::FromInt(SkillID));
+
+	FCharacterSkillStruct* SkillData = GetSkillDataTable(SkillName);
 
 	if (!SkillData)
 	{
 		return;
 	}
 
-	FName MontagePath = SkillData->Montage;
+	UAnimMontage* animMontage = SkillData->Montage;
 	float coolTime = SkillData->CoolDown;
 	float SkillDamage = SkillData->Damage;
 
-	UAnimMontage* animMontage = LoadObject<UAnimMontage>(nullptr, *MontagePath.ToString());
+	
 
 	if (!animMontage)
 	{
@@ -53,6 +56,7 @@ void UCKnightSkillComponent::UseSkill(FName skillname)
 
 	if (bUseSkill)
 	{
+		bUseSkill = false;
 		OwnerCharacter = Cast<ACKnight>(GetOwner());
 
 		if (OwnerCharacter)

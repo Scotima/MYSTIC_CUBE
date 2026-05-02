@@ -15,7 +15,7 @@ public:
 	UCKnightSkillComponent();	
 
 	UFUNCTION(BlueprintCallable, Category = "Skill")
-	void UseSkill(FName skillname);
+	void UseSkill(int SkillID, int32 ComboIndex);
 
 
 

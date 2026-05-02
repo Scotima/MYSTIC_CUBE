@@ -94,6 +94,8 @@ void ARoguePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Jump", IE_Released, this, &ARoguePlayerController::OnJumpReleased);
 
 	InputComponent->BindAction("Autoattack", IE_Pressed, this, &ARoguePlayerController::OnMouseLeftClick);
+	InputComponent->BindAction("SkillE", IE_Pressed, this, &ARoguePlayerController::OnEPressed);
+	InputComponent->BindAction("SkillQ", IE_Pressed, this, &ARoguePlayerController::OnQPressed);
 
 
 }
@@ -151,8 +153,28 @@ void ARoguePlayerController::OnMouseLeftClick()
 		return;
 	}
 
-
+	
 	characterBase->InputSkillLeftMouse();
+}
+
+void ARoguePlayerController::OnQPressed()
+{
+	if (!characterBase)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
+		return;
+	}
+	characterBase->InputSkillQ();
+}
+
+void ARoguePlayerController::OnEPressed()
+{
+	if (!characterBase)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
+		return;
+	}
+	characterBase->InputSkillE();
 }
 
 void ARoguePlayerController::ApplyMode(ETypeControll controll)

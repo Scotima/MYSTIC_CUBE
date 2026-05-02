@@ -18,6 +18,8 @@ ACKnight::ACKnight()
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WeaponMesh->SetGenerateOverlapEvents(false);
 
+	ComboIndex = 0;
+
 
 }
 
@@ -48,10 +50,49 @@ void ACKnight::EndNiagaraImpact()
 
 void ACKnight::InputSkillLeftMouse()
 {
-	// 여기서 스킬 컴포넌트 호출해서 useskill사용하기.
-	KnightSkillComponent->UseSkill(TEXT("NormalAttack"));
+	
+	KnightSkillComponent->UseSkill(1000, ComboIndex);
+	//todo 콤보인덱스 공유 문제와 콤보 인덱스 증가 문제를 고민해볼것.
+}
+
+void ACKnight::InputSkillQ()
+{
+	if (eSkillName != SkillName::SkillQ)
+	{
+		eSkillName = SkillName::SkillQ;
+		ComboIndex = 0;
+	}
+
+	if (bCanComboInput && ComboIndex < 1)
+	{
+		ComboIndex++;
+
+	}
+
+	//다른 스킬을 쓰고 여기 스킬을 쓰려고 했을 때 콤보박스를 공유해버리면 이상한데서 1타를 쌓고 여기에서 2타가 되버리는데..
+	
+	KnightSkillComponent->UseSkill(2000, ComboIndex);
+
+
 
 }
+
+void ACKnight::InputSkillE()
+{
+	if (eSkillName != SkillName::SkillE)
+	{
+		eSkillName = SkillName::SkillE;
+		ComboIndex = 0;
+	}
+
+	if (bCanComboInput && ComboIndex < 1)
+	{
+		ComboIndex++;
+	}
+
+	KnightSkillComponent->UseSkill(3000, ComboIndex);
+}
+
 
 UNiagaraComponent* ACKnight::SpawnNiagaraSystem(UNiagaraSystem* niagarasystem, FName SocketName, FVector LocationOffset,
 	FRotator RotationOffset, FVector Scale)

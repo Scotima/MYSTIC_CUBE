@@ -8,6 +8,7 @@ void UCSpawnNiagaraSystemNotify::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 
 	if (Knight)
 	{
+		Knight->GetCharacterMovement()->StopMovementImmediately();
 		Knight->GetCharacterMovement()->MaxWalkSpeed = 0;
 
 		if (niagaraSystem)

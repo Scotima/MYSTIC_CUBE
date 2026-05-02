@@ -5,6 +5,15 @@
 
 class UNiagaraComponent;
 
+enum class SkillName :uint8
+{
+	None,
+	NormalAttack,
+	SkillQ,
+	SkillE,
+	SkillShift
+};
+
 
 UCLASS()
 class DEMONKING_API ACKnight : public ARogueCharacterBase
@@ -23,7 +32,16 @@ public:
 
 public:
 	virtual void InputSkillLeftMouse() override;
+	virtual void InputSkillQ() override;
+	virtual void InputSkillE() override;
 	
+	FORCEINLINE void OpenComboInput() { bCanComboInput = true; }
+	FORCEINLINE void CloseComboInput() { bCanComboInput = false; }
+	FORCEINLINE int32 GetComboIndex() { return ComboIndex; }
+	FORCEINLINE void SetComboIndex(int32 a) { ComboIndex = a; }
+	FORCEINLINE void ResetCombo() { ComboIndex = 0; eSkillName = SkillName::None; }
+	
+
 	
 
 public:
@@ -45,5 +63,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SkillComponent")
 	TObjectPtr<class UCKnightSkillComponent> KnightSkillComponent;
 
+private:
+	bool bCanComboInput;
+	int32 ComboIndex;
+	SkillName eSkillName = SkillName::None;
+
+	bool bUsingSkill = false;
 	
 };

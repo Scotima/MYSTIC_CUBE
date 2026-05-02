@@ -14,10 +14,10 @@ struct FCharacterSkillStruct : public FTableRowBase
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	int32 SkillID;
+	FName Name;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FName Montage;
+	TObjectPtr<UAnimMontage> Montage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float Damage;
