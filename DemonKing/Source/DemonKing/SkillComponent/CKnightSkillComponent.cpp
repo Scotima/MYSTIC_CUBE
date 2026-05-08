@@ -61,11 +61,16 @@ void UCKnightSkillComponent::UseSkill(int SkillID, int32 ComboIndex)
 
 		if (OwnerCharacter)
 		{
-			OwnerCharacter->PlaySkillMotion(animMontage); // ��ų �ִϸ��̼� ����.
-			GetWorld()->GetTimerManager().SetTimer(timerhandle, this, &UCKnightSkillComponent::CoolDownSystem, coolTime, false, 1.0);
+			UE_LOG(LogTemp, Warning, TEXT("[UCKnightSkillComponent::UseSkill] UseSKill"));
+			OwnerCharacter->PlaySkillMotion(animMontage); // ��ų �ִϸ��̼� ����.
+			GetWorld()->GetTimerManager().SetTimer(timerhandle, this, &UCKnightSkillComponent::CoolDownSystem, 1, false, coolTime);
 			
 
 		}
+	}
+
+	else{
+		UE_LOG(LogTemp, Warning, TEXT("[UCKnightSkillComponent::UseSkill] Skill is on CoolDown"));
 	}
 }
 
@@ -84,6 +89,7 @@ FCharacterSkillStruct* UCKnightSkillComponent::GetSkillDataTable(FName rowname)
 
 void UCKnightSkillComponent::CoolDownSystem()
 {
+	//todo 쿨타임 공유 문제 해결해보기.
 	GetWorld()->GetTimerManager().ClearTimer(timerhandle);
 	bUseSkill = true;
 }

@@ -61,3 +61,4 @@ DemonKing/SourceArt/**/*.tga
 # Optional: 개인 테스트용 BP 폴더 (팀 공용이면 삭제!)
 # ===============================
 DemonKing/Content/*
+DemonKing/.vscode/

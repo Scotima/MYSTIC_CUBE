@@ -7,13 +7,8 @@ void UANS_ComboInputWindow::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimS
 
 	if (knight)
 	{
+		
 		knight->OpenComboInput();
-		if (knight->GetUsingSkill())
-		{
-			int32 comboindex = knight->GetComboIndex();
-			comboindex++;
-			knight->SetComboIndex(comboindex);
-		}
 		
 	}
 }
@@ -26,10 +21,6 @@ void UANS_ComboInputWindow::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSeq
 	if (knight)
 	{
 		knight->CloseComboInput();
-		if (knight->GetComboIndex() > 1)
-		{
-			knight->ResetCombo();
-		}
 	}
 
 

@@ -10,6 +10,7 @@
 #include "DemonKing/GameFlow/RoguePlayerState.h"
 #include "DemonKing/Online/MySessionSubsystem.h"
 #include "DemonKing/CCharacter/RogueCharacterBase.h"
+#include "RoguePlayerController.h"
 
 
 ARoguePlayerController::ARoguePlayerController()
@@ -94,8 +95,11 @@ void ARoguePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Jump", IE_Released, this, &ARoguePlayerController::OnJumpReleased);
 
 	InputComponent->BindAction("Autoattack", IE_Pressed, this, &ARoguePlayerController::OnMouseLeftClick);
+	InputComponent->BindAction("Autoattack", IE_Released, this, &ARoguePlayerController::OnMouseLeftReleased);
 	InputComponent->BindAction("SkillE", IE_Pressed, this, &ARoguePlayerController::OnEPressed);
+	InputComponent->BindAction("SkillE", IE_Released, this, &ARoguePlayerController::OnEDePressed);
 	InputComponent->BindAction("SkillQ", IE_Pressed, this, &ARoguePlayerController::OnQPressed);
+	InputComponent->BindAction("SkillQ", IE_Released, this, &ARoguePlayerController::OnQDePressed);
 
 
 }
@@ -147,16 +151,27 @@ void ARoguePlayerController::OnJumpReleased()
 
 void ARoguePlayerController::OnMouseLeftClick()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[ARoguePlayerController::OnMouseLeftClick]"));
 	if (!characterBase)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
 		return;
 	}
-
-	
+    characterBase->SetUsingSkill(true);
 	characterBase->InputSkillLeftMouse();
+
 }
 
+void ARoguePlayerController::OnMouseLeftReleased()
+{
+	if(!characterBase)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CharacterBase failed casting"));
+		return;
+	}
+
+	characterBase->SetUsingSkill(false);
+}
 void ARoguePlayerController::OnQPressed()
 {
 	if (!characterBase)
@@ -164,7 +179,18 @@ void ARoguePlayerController::OnQPressed()
 		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
 		return;
 	}
+	characterBase->SetUsingSkill(true);
 	characterBase->InputSkillQ();
+}
+
+void ARoguePlayerController::OnQDePressed()
+{
+	if (!characterBase)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
+		return;
+	}
+	characterBase->SetUsingSkill(false);
 }
 
 void ARoguePlayerController::OnEPressed()
@@ -174,7 +200,18 @@ void ARoguePlayerController::OnEPressed()
 		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
 		return;
 	}
+	characterBase->SetUsingSkill(true);
 	characterBase->InputSkillE();
+}
+
+void ARoguePlayerController::OnEDePressed()
+{
+	if (!characterBase)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
+		return;
+	}
+	characterBase->SetUsingSkill(false);
 }
 
 void ARoguePlayerController::ApplyMode(ETypeControll controll)
@@ -216,6 +253,7 @@ void ARoguePlayerController::ApplyMode(ETypeControll controll)
 	case ETypeControll::Game:
 	{
 		FInputModeGameOnly InputMode;
+		InputMode.SetConsumeCaptureMouseDown(false);
 		SetInputMode(InputMode);
 		break;
 		

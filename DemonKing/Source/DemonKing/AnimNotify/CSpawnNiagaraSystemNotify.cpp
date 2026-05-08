@@ -14,7 +14,7 @@ void UCSpawnNiagaraSystemNotify::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 		if (niagaraSystem)
 		{
 			Knight->SpawnNiagaraSystem(niagaraSystem, SocketName, LocationOffset, RotationOffset, Scale);
-
+			
 		}
 	}
 
@@ -23,7 +23,7 @@ void UCSpawnNiagaraSystemNotify::NotifyBegin(USkeletalMeshComponent* MeshComp, U
 void UCSpawnNiagaraSystemNotify::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
 	Knight = Cast<ACKnight>(MeshComp->GetOwner());
-
+	
 	if (Knight)
 	{
 		Knight->GetCharacterMovement()->MaxWalkSpeed = 300;

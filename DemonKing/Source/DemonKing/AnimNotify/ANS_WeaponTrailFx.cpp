@@ -8,6 +8,7 @@ void UANS_WeaponTrailFx::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequ
 
 	if (Knight)
 	{
+		Knight->GetCharacterMovement()->StopMovementImmediately();
 		Knight->GetCharacterMovement()->MaxWalkSpeed = 0;
 		Knight->StartNiagaraImpact(niagaraSystem, WeaponSocketName);
 	}

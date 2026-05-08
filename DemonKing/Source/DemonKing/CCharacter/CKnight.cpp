@@ -50,47 +50,69 @@ void ACKnight::EndNiagaraImpact()
 
 void ACKnight::InputSkillLeftMouse()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[ACKnight::InputSkillLeftMouse]"));
+	if(eSkillName != SkillName::NormalAttack)
+	{	
+		UE_LOG(LogTemp, Warning, TEXT("eSkillName != SkillName::NormalAttack"));
+		eSkillName = SkillName::NormalAttack;
+		ComboIndex = 0;
+		bCanComboInput = false;
+	}
+	if(eSkillName == SkillName::NormalAttack)
+	{
+		if(bCanComboInput)
+		{
+			ComboIndex++;
+			bCanComboInput = false;
+
+		}
+	    KnightSkillComponent->UseSkill(1000, ComboIndex);
+		
+	}
 	
-	KnightSkillComponent->UseSkill(1000, ComboIndex);
-	//todo ÄÞº¸ÀÎµ¦½º °øÀ¯ ¹®Á¦¿Í ÄÞº¸ ÀÎµ¦½º Áõ°¡ ¹®Á¦¸¦ °í¹ÎÇØº¼°Í.
+		
 }
 
 void ACKnight::InputSkillQ()
 {
-	if (eSkillName != SkillName::SkillQ)
+	if(eSkillName != SkillName::SkillQ)
 	{
 		eSkillName = SkillName::SkillQ;
 		ComboIndex = 0;
+		bCanComboInput = false;
 	}
 
-	if (bCanComboInput && ComboIndex < 1)
+	if(eSkillName == SkillName::SkillQ)
 	{
-		ComboIndex++;
-
+		if(bCanComboInput)
+		{
+			ComboIndex++;
+			bCanComboInput = false;
+		}
+		KnightSkillComponent->UseSkill(2000, ComboIndex);
 	}
-
-	//´Ù¸¥ ½ºÅ³À» ¾²°í ¿©±â ½ºÅ³À» ¾²·Á°í ÇßÀ» ¶§ ÄÞº¸¹Ú½º¸¦ °øÀ¯ÇØ¹ö¸®¸é ÀÌ»óÇÑµ¥¼­ 1Å¸¸¦ ½×°í ¿©±â¿¡¼­ 2Å¸°¡ µÇ¹ö¸®´Âµ¥..
-	
-	KnightSkillComponent->UseSkill(2000, ComboIndex);
-
-
-
 }
 
 void ACKnight::InputSkillE()
 {
-	if (eSkillName != SkillName::SkillE)
+	if(eSkillName != SkillName::SkillE)
 	{
 		eSkillName = SkillName::SkillE;
 		ComboIndex = 0;
+		bCanComboInput = false;
 	}
 
-	if (bCanComboInput && ComboIndex < 1)
+	if(eSkillName == SkillName::SkillE)
 	{
-		ComboIndex++;
+		if(bCanComboInput)
+		{
+			ComboIndex++;
+			bCanComboInput = false;
+		}
+
+		KnightSkillComponent->UseSkill(3000, ComboIndex);
 	}
 
-	KnightSkillComponent->UseSkill(3000, ComboIndex);
 }
 
 
@@ -118,7 +140,7 @@ UNiagaraComponent* ACKnight::SpawnNiagaraSystem(UNiagaraSystem* niagarasystem, F
 
 	const FTransform BaseTrans = SocketName != NAME_None ? meshComp->GetSocketTransform(SocketName, RTS_World) : meshComp->GetComponentTransform();
 
-	FVector SpawnLocation = BaseTrans.TransformPosition(LocationOffset);//¼ÒÄÏ À§Ä¡ ±âÁØÀ¸·Î À§Ä¡Á¶Á¤.
+	FVector SpawnLocation = BaseTrans.TransformPosition(LocationOffset);//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½.
 	FQuat SpawnQut = BaseTrans.GetRotation() * RotationOffset.Quaternion();
 	FRotator SpawnRotation = SpawnQut.Rotator();
 

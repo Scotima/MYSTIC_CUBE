@@ -32,7 +32,7 @@ protected:
 
 
 public:
-	//https://parkcy723.tistory.com/104 ÄÚµå
+	//https://parkcy723.tistory.com/104 ï¿½Úµï¿½
 
 	UFUNCTION()
 	void LookMouseCursor();
@@ -62,8 +62,11 @@ private:
 	void OnJumpReleased();
 
 	void OnMouseLeftClick();
+	void OnMouseLeftReleased();
 	void OnQPressed();
+	void OnQDePressed();
 	void OnEPressed();
+	void OnEDePressed();
 	
 
 

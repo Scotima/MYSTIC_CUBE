@@ -67,7 +67,5 @@ private:
 	bool bCanComboInput;
 	int32 ComboIndex;
 	SkillName eSkillName = SkillName::None;
-
-	bool bUsingSkill = false;
 	
 };
