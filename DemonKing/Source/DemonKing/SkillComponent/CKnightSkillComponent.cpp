@@ -32,6 +32,18 @@ void UCKnightSkillComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UCKnightSkillComponent::UseSkill(int SkillID, int32 ComboIndex)
 {
+	
+
+	if ((BeforeSKillId / 1000 % 10)  != (SkillID / 1000 % 10))
+	{
+		BeforeSKillId = SkillID;
+		bUseSkill = true;
+	}
+
+	
+
+
+	 
 	SkillID += ComboIndex;
 	FName SkillName = FName(*FString::FromInt(SkillID));
 
@@ -45,7 +57,17 @@ void UCKnightSkillComponent::UseSkill(int SkillID, int32 ComboIndex)
 	UAnimMontage* animMontage = SkillData->Montage;
 	float coolTime = SkillData->CoolDown;
 	float SkillDamage = SkillData->Damage;
+	
+	{
+		float WorldTime =GetWorld()->GetTimeSeconds();
+		float EndSkillTime = WorldTime + coolTime;
 
+		TMap<int, float> SkillCoolTimeMap;
+		SkillCoolTimeMap.Add(SKillID, EndSkillTime);
+
+		if (SkillCoolTimeMap[SkillID] < WorldTime)
+
+	}
 	
 
 	if (!animMontage)
