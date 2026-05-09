@@ -101,6 +101,8 @@ void ARoguePlayerController::SetupInputComponent()
 	InputComponent->BindAction("SkillQ", IE_Pressed, this, &ARoguePlayerController::OnQPressed);
 	InputComponent->BindAction("SkillQ", IE_Released, this, &ARoguePlayerController::OnQDePressed);
 
+	InputComponent->BindAction("SkillShift", IE_Pressed, this, & ARoguePlayerController::OnShiftPressed);
+
 
 }
 
@@ -212,6 +214,16 @@ void ARoguePlayerController::OnEDePressed()
 		return;
 	}
 	characterBase->SetUsingSkill(false);
+}
+
+void ARoguePlayerController::OnShiftPressed()
+{
+	if(!characterBase)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
+		return;
+	}
+	characterBase->InputSkillShift();
 }
 
 void ARoguePlayerController::ApplyMode(ETypeControll controll)

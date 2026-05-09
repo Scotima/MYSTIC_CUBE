@@ -115,6 +115,17 @@ void ACKnight::InputSkillE()
 
 }
 
+void ACKnight::InputSkillShift()
+{
+	// 코드 출처 https://s-pace.tistory.com/36
+	float DesheDistance = 1000.0f;
+
+	FVector DeshePower = GetActorForwardVector() * DesheDistance;
+
+	DeshePower.Z = 200.0f;
+
+	LaunchCharacter(DeshePower, true, true);
+}
 
 UNiagaraComponent* ACKnight::SpawnNiagaraSystem(UNiagaraSystem* niagarasystem, FName SocketName, FVector LocationOffset,
 	FRotator RotationOffset, FVector Scale)

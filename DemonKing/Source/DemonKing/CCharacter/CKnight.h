@@ -34,6 +34,7 @@ public:
 	virtual void InputSkillLeftMouse() override;
 	virtual void InputSkillQ() override;
 	virtual void InputSkillE() override;
+	virtual void InputSkillShift() override;
 	
 	FORCEINLINE void OpenComboInput() { bCanComboInput = true; }
 	FORCEINLINE void CloseComboInput() { bCanComboInput = false; }

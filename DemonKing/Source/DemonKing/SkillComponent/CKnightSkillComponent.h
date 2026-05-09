@@ -45,5 +45,7 @@ private:
 	FTimerHandle timerhandle;
 
 	bool bUseSkill = true;
+
+	int BeforeSKillId = 0;
 		
 };

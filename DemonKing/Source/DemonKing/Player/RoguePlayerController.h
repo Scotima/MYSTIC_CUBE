@@ -67,6 +67,8 @@ private:
 	void OnQDePressed();
 	void OnEPressed();
 	void OnEDePressed();
+
+	void OnShiftPressed();
 	
 
 
