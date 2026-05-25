@@ -17,6 +17,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Skill")
 	void UseSkill(int SkillID, int32 ComboIndex);
 
+public:
+	FORCEINLINE void SetMotionEnd(bool a) {MotionEnd = a;}
+
 
 
 protected:
@@ -30,7 +33,7 @@ public:
 private:
 	FCharacterSkillStruct* GetSkillDataTable(FName rowname);
 
-	void CoolDownSystem();
+	bool CoolDownSystem(int SkillID);
 
 protected:
 
@@ -40,6 +43,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "DataTable")
 	TObjectPtr<UDataTable> SkillDataTable;
 
+private:
+	TMap<int, float> SkillCoolTimeMap;
+
+
 
 private:
 	FTimerHandle timerhandle;
@@ -47,5 +54,7 @@ private:
 	bool bUseSkill = true;
 
 	int BeforeSKillId = 0;
+
+	bool MotionEnd = true;
 		
 };

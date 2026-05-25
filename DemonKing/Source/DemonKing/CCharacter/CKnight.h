@@ -42,7 +42,8 @@ public:
 	FORCEINLINE void SetComboIndex(int32 a) { ComboIndex = a; }
 	FORCEINLINE void ResetCombo() { ComboIndex = 0; eSkillName = SkillName::None; }
 	
-
+public:
+	void SkillDeshe();
 	
 
 public:

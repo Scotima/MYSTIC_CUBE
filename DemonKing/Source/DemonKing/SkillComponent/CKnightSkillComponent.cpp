@@ -11,6 +11,7 @@ UCKnightSkillComponent::UCKnightSkillComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	bUseSkill = true;
+	MotionEnd = true;
 }
 
 
@@ -34,16 +35,13 @@ void UCKnightSkillComponent::UseSkill(int SkillID, int32 ComboIndex)
 {
 	
 
-	if ((BeforeSKillId / 1000 % 10)  != (SkillID / 1000 % 10))
+	if ((BeforeSKillId / 1000 % 10)  != (SkillID / 1000 % 10)) // 스킬의 앞자리만 비교해서 같은 스킬인지 아닌지 비교
 	{
 		BeforeSKillId = SkillID;
 		bUseSkill = true;
 	}
 
 	
-
-
-	 
 	SkillID += ComboIndex;
 	FName SkillName = FName(*FString::FromInt(SkillID));
 
@@ -57,35 +55,29 @@ void UCKnightSkillComponent::UseSkill(int SkillID, int32 ComboIndex)
 	UAnimMontage* animMontage = SkillData->Montage;
 	float coolTime = SkillData->CoolDown;
 	float SkillDamage = SkillData->Damage;
+
 	
-	{
-		float WorldTime =GetWorld()->GetTimeSeconds();
-		float EndSkillTime = WorldTime + coolTime;
-
-		TMap<int, float> SkillCoolTimeMap;
-		SkillCoolTimeMap.Add(SKillID, EndSkillTime);
-
-		if (SkillCoolTimeMap[SkillID] < WorldTime)
-
-	}
 	
-
+ 
+ 	
 	if (!animMontage)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[UCKnightSkillComponent::UseSkill] animMontage is nullptr"));
 		return;
 	}
-
-	if (bUseSkill)
+	
+	if (CoolDownSystem(SkillID)&& MotionEnd)
 	{
-		bUseSkill = false;
+		MotionEnd = false;
 		OwnerCharacter = Cast<ACKnight>(GetOwner());
 
 		if (OwnerCharacter)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[UCKnightSkillComponent::UseSkill] UseSKill"));
-			OwnerCharacter->PlaySkillMotion(animMontage); // ��ų �ִϸ��̼� ����.
-			GetWorld()->GetTimerManager().SetTimer(timerhandle, this, &UCKnightSkillComponent::CoolDownSystem, 1, false, coolTime);
+			OwnerCharacter->PlaySkillMotion(animMontage); //즉시 애니메이션이 재생되는 문제.
+			float WorldTime =GetWorld()->GetTimeSeconds();
+ 			float EndSkillTime = WorldTime + coolTime;
+			SkillCoolTimeMap.Add(SkillID, EndSkillTime); 
 			
 
 		}
@@ -109,10 +101,17 @@ FCharacterSkillStruct* UCKnightSkillComponent::GetSkillDataTable(FName rowname)
 	return Skilldata;
 }
 
-void UCKnightSkillComponent::CoolDownSystem()
+bool UCKnightSkillComponent::CoolDownSystem(int SkillID)
 {
-	//todo 쿨타임 공유 문제 해결해보기.
-	GetWorld()->GetTimerManager().ClearTimer(timerhandle);
-	bUseSkill = true;
+ 	float WorldTime = GetWorld()->GetTimeSeconds();
+ 	float* EndCool = SkillCoolTimeMap.Find(SkillID);
+	
+	if(!EndCool)
+	{
+		return true;
+	}
+
+	return WorldTime >= *EndCool;
+	
 }
 
