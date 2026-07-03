@@ -14,6 +14,12 @@ void ARogueHUD::ClearAllUI()
 		StartGameWidget->RemoveFromParent();
 		StartGameWidget = nullptr;
 	}
+
+	if (SkillBarWidget != nullptr)
+	{
+		SkillBarWidget->RemoveFromParent();
+		SkillBarWidget = nullptr;
+	}
 }
 
 void ARogueHUD::ShowMainMenuWidget()
@@ -49,4 +55,22 @@ void ARogueHUD::ShowStartGameWidget()
 	{
 		StartGameWidget->AddToViewport();
 	}
+}
+
+void ARogueHUD::ShowSkillBarHUD()
+{
+	ClearAllUI();
+	if (!SkillBarWidgetClass)
+	{
+		return;
+	}
+
+	SkillBarWidget = CreateWidget<UUserWidget>(GetWorld(), SkillBarWidgetClass);
+
+	if (SkillBarWidget)
+	{
+		SkillBarWidget->AddToViewport();
+	}
+
+
 }

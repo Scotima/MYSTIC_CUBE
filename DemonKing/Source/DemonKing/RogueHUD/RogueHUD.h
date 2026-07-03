@@ -17,6 +17,7 @@ public:
 	void ClearAllUI();
 	void ShowMainMenuWidget();
 	void ShowStartGameWidget();
+	void ShowSkillBarHUD();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
@@ -24,10 +25,16 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> StartGameWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> SkillBarWidgetClass;
 private:
 	UPROPERTY()
 	UUserWidget* MainMenuWidget;
 
 	UPROPERTY()
 	UUserWidget* StartGameWidget;
+
+	UPROPERTY()
+	UUserWidget* SkillBarWidget;
 };

@@ -3,7 +3,8 @@
 #include "DemonKing/CCharacter/CKnight.h"
 #include "Animation/AnimMontage.h"
 #include "UObject/ConstructorHelpers.h"
-
+#include "Kismet/KismetSystemLibrary.h"
+#include "Engine/EngineTypes.h"
 
 UCKnightSkillComponent::UCKnightSkillComponent()
 {
@@ -29,6 +30,66 @@ void UCKnightSkillComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	
+}
+
+void UCKnightSkillComponent::DoTrace(const FBoxTraceData& BoxTraceData)
+{
+	AActor* Owner = GetOwner();
+
+	if (!Owner)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCKnightSkillComponent::DoTrace] !Owner"));
+		return;
+	}
+
+	
+	const float Alpha = FMath::Clamp(BoxTraceData.Value, 0.0f, 1.0f);
+
+	const float TraceDistance = FMath::Lerp(BoxTraceData.MaxDistance, BoxTraceData.MinDistance, Alpha);
+	const FVector BoxHalfSize = FMath::Lerp(BoxTraceData.MaxBoxHalfSize, BoxTraceData.MinBoxHalfSize, Alpha);
+	
+	FVector TraceDir = Owner->GetActorForwardVector();
+
+	switch (BoxTraceData.BoxTraceDirection)
+	{
+	case EBoxTraceDirection::FORWARD:
+		TraceDir = Owner->GetActorForwardVector();
+		break;
+	case EBoxTraceDirection::BACKWARD:
+		TraceDir = -Owner->GetActorForwardVector();
+		break;
+	case EBoxTraceDirection::RIGHT:
+		TraceDir = Owner->GetActorRightVector();
+		break;
+	case EBoxTraceDirection::LEFT:
+		TraceDir = -Owner->GetActorRightVector();
+		break;
+	default:
+		break;
+	}
+
+	
+
+	const FVector Start = Owner->GetActorLocation() + TraceDir*BoxTraceData.StartDistance;
+	const FVector End = Start + TraceDir * TraceDistance;
+
+	TArray<FHitResult> HitResults;
+	TArray<AActor*> IgnoreActors;
+	IgnoreActors.Add(Owner);
+
+	bool Hit = UKismetSystemLibrary::BoxTraceMulti(this,
+		Start, End, BoxHalfSize, TraceDir.Rotation(), UEngineTypes::ConvertToTraceType(ECC_Visibility),
+		false, IgnoreActors, EDrawDebugTrace::ForDuration, HitResults, true);
+
+
+	if (Hit)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HIT"));
+	}
+
+
+
+
 }
 
 void UCKnightSkillComponent::UseSkill(int SkillID, int32 ComboIndex)

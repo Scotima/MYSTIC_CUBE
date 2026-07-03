@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "DemonKing/SkillStruct/CharacterSkillStruct.h"
+#include "DemonKing/SkillStruct/BoxTraceTypes.h"
 #include "CKnightSkillComponent.generated.h"
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -19,6 +20,7 @@ public:
 
 public:
 	FORCEINLINE void SetMotionEnd(bool a) {MotionEnd = a;}
+	FORCEINLINE bool GetMotionEnd() { return MotionEnd; }
 
 
 
@@ -29,6 +31,8 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	void DoTrace(const FBoxTraceData& BoxTraceData);
 
 private:
 	FCharacterSkillStruct* GetSkillDataTable(FName rowname);

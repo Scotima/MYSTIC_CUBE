@@ -24,7 +24,7 @@ void UANS_WeaponTrailFx::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequen
 	if (Knight)
 	{
 		Knight->EndNiagaraImpact();
-		Knight->GetCharacterMovement()->MaxWalkSpeed = 300;
+		Knight->GetCharacterMovement()->MaxWalkSpeed = 600;
 	}
 
 }

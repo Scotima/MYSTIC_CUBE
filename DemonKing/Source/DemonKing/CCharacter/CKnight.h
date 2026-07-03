@@ -29,6 +29,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void EndNiagaraImpact();
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetAttackMode() { return bAttackMode; }
 
 public:
 	virtual void InputSkillLeftMouse() override;
@@ -42,8 +44,12 @@ public:
 	FORCEINLINE void SetComboIndex(int32 a) { ComboIndex = a; }
 	FORCEINLINE void ResetCombo() { ComboIndex = 0; eSkillName = SkillName::None; }
 	
+	
 public:
 	void SkillDeshe();
+
+	void CheckingAttackPose();
+	void ReturnToIdlePose();
 	
 
 public:
@@ -69,5 +75,9 @@ private:
 	bool bCanComboInput;
 	int32 ComboIndex;
 	SkillName eSkillName = SkillName::None;
+
+	bool bAttackMode = false;
+
+	FTimerHandle PoseTimerHandle;
 	
 };

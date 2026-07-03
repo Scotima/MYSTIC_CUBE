@@ -6,6 +6,7 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "DemonKing/SkillComponent/CKnightSkillComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 ACKnight::ACKnight()
 {
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
@@ -60,6 +61,7 @@ void ACKnight::InputSkillLeftMouse()
 	}
 	if(eSkillName == SkillName::NormalAttack)
 	{
+		bAttackMode = true;
 		if(bCanComboInput)
 		{
 			ComboIndex++;
@@ -84,6 +86,7 @@ void ACKnight::InputSkillQ()
 
 	if(eSkillName == SkillName::SkillQ)
 	{
+		bAttackMode = true;
 		if(bCanComboInput)
 		{
 			ComboIndex++;
@@ -104,6 +107,7 @@ void ACKnight::InputSkillE()
 
 	if(eSkillName == SkillName::SkillE)
 	{
+		bAttackMode = true;
 		if(bCanComboInput)
 		{
 			ComboIndex++;
@@ -117,7 +121,7 @@ void ACKnight::InputSkillE()
 
 void ACKnight::InputSkillShift()
 {
-	
+	bAttackMode = true;
 	KnightSkillComponent->UseSkill(4000, 0);
 
 }
@@ -188,13 +192,33 @@ float ACKnight::PlaySkillMotion(UAnimMontage* animmontage, float PlayRate)
 void ACKnight::SkillDeshe()
 {
 	// 코드 출처 https://s-pace.tistory.com/36
-	float DesheDistance = 2000.0f;
+	float DesheDistance = 3000.0f;
 
 	FVector DeshePower = GetActorForwardVector() * DesheDistance;
 
 	DeshePower.Z = 200.0f;
 	
 	LaunchCharacter(DeshePower, true, true);
+}
+
+void ACKnight::CheckingAttackPose()
+{
+	GetWorldTimerManager().ClearTimer(PoseTimerHandle);
+
+	if (bAttackMode == true && KnightSkillComponent->GetMotionEnd() == true )
+	{
+		GetWorldTimerManager().SetTimer(
+			PoseTimerHandle, this, &ACKnight::ReturnToIdlePose, 3.0f, false);
+	}
+}
+
+void ACKnight::ReturnToIdlePose()
+{
+	GetWorldTimerManager().ClearTimer(PoseTimerHandle);
+	if (bAttackMode == true && KnightSkillComponent->GetMotionEnd() == true && GetCharacterMovement()->Velocity.Size2D() < 5.0f)
+	{
+		bAttackMode = false;
+	}
 }
 
 

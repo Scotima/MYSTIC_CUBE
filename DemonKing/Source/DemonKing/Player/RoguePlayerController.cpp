@@ -15,7 +15,7 @@
 
 ARoguePlayerController::ARoguePlayerController()
 {
-	
+	bCanInput = true;
 }
 
 void ARoguePlayerController::BeginPlay()
@@ -44,12 +44,19 @@ void ARoguePlayerController::BeginPlay()
 void ARoguePlayerController::Tick(float Deltatime)
 {
 	Super::Tick(Deltatime);
-	LookMouseCursor();
+	//LookMouseCursor();
 }
 
 
 void ARoguePlayerController::LookMouseCursor()
 {
+	if (bCanInput)
+	{
+		bCanInput = false;
+		SetIgnoreMoveInput(true);
+
+	}
+
 	FHitResult Hit;
 	GetHitResultUnderCursor(ECC_Visibility, false, Hit);
 
@@ -66,7 +73,7 @@ void ARoguePlayerController::LookMouseCursor()
 				MyPawn->GetActorRotation(),
 				TargetRotation, GetWorld()->GetDeltaSeconds(), 20.0f);
 
-			MyPawn->SetActorRotation(NewRotation);
+			MyPawn->SetActorRotation(TargetRotation);
 		}
 
 		
@@ -111,24 +118,30 @@ void ARoguePlayerController::SetupInputComponent()
 void ARoguePlayerController::MoveForward(float value)
 {
 	APawn* p = GetPawn();
+	FRotator ControlRot = FRotator(0, GetControlRotation().Yaw, 0);
+	FVector Direction = FQuat(ControlRot).GetForwardVector().GetSafeNormal2D();
 
 	if (!p)
 	{
 		return;
 	}
 	
-	p->AddMovementInput(p->GetActorForwardVector(), value);
+	p->AddMovementInput(Direction, value);
 }
 
 void ARoguePlayerController::MoveRight(float value)
 {
+
 	APawn* p = GetPawn();
+
+	FRotator ControlRot = FRotator(0, GetControlRotation().Yaw, 0);
+	FVector Direction = FQuat(ControlRot).GetRightVector().GetSafeNormal2D();
 
 	if (!p)
 	{
 		return;
 	}
-	p->AddMovementInput(FVector::RightVector, value);
+	p->AddMovementInput(Direction, value);
 }
 
 void ARoguePlayerController::OnJumpPressed()
@@ -138,6 +151,7 @@ void ARoguePlayerController::OnJumpPressed()
 	{
 		return;
 	}
+
 
 	C->Jump();
 }
@@ -153,6 +167,8 @@ void ARoguePlayerController::OnJumpReleased()
 
 void ARoguePlayerController::OnMouseLeftClick()
 {
+	LookMouseCursor();
+	characterBase = Cast<ARogueCharacterBase>(GetPawn());
 	UE_LOG(LogTemp, Warning, TEXT("[ARoguePlayerController::OnMouseLeftClick]"));
 	if (!characterBase)
 	{
@@ -176,6 +192,9 @@ void ARoguePlayerController::OnMouseLeftReleased()
 }
 void ARoguePlayerController::OnQPressed()
 {
+	LookMouseCursor();
+	characterBase = Cast<ARogueCharacterBase>(GetPawn());
+
 	if (!characterBase)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
@@ -197,6 +216,8 @@ void ARoguePlayerController::OnQDePressed()
 
 void ARoguePlayerController::OnEPressed()
 {
+	LookMouseCursor();
+	characterBase = Cast<ARogueCharacterBase>(GetPawn());
 	if (!characterBase)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
@@ -218,12 +239,17 @@ void ARoguePlayerController::OnEDePressed()
 
 void ARoguePlayerController::OnShiftPressed()
 {
+	LookMouseCursor();
+	characterBase = Cast<ARogueCharacterBase>(GetPawn());
 	if(!characterBase)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
 		return;
 	}
 	characterBase->InputSkillShift();
+
+	//대쉬 중인지 판단하는 변수 만들어서 wasd입력값 못받게 하기.
+	//끝나면 노티파이로 호출해서 다시 true로 만들기. 간단하게.
 }
 
 void ARoguePlayerController::ApplyMode(ETypeControll controll)
@@ -265,8 +291,14 @@ void ARoguePlayerController::ApplyMode(ETypeControll controll)
 	case ETypeControll::Game:
 	{
 		FInputModeGameOnly InputMode;
-		InputMode.SetConsumeCaptureMouseDown(false);
+		InputMode.SetConsumeCaptureMouseDown(false); //This means it will not "consume" the click input used to capture the mouse. Setting this to `false` is useful, for example, when you want a click on the game screen to both set the focus and trigger an attack or interaction.
 		SetInputMode(InputMode);
+
+		if (ARogueHUD* hud = GetHUD<ARogueHUD>())
+		{
+			hud->ShowSkillBarHUD();
+		}
+
 		break;
 		
 	}

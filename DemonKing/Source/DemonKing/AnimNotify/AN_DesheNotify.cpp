@@ -9,6 +9,11 @@ void UAN_DesheNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase
     {
         Knight->SkillDeshe();
     }
+
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("AN_DesheNotify: Owner is not a CKnight."));
+    }
 }
 
 
