@@ -4,6 +4,7 @@
 #include "OnlineSessionSettings.h"
 #include "Online/OnlineSessionNames.h"
 #include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlineExternalUIInterface.h"
 
 
 static const FName KEY_MatchType(TEXT("MatchType"));
@@ -167,7 +168,7 @@ void UMySessionSubsystem::StartSessionComplete(FName SessionName, bool bWasSucce
 		return;
 	}
 
-	world->ServerTravel(TEXT("/Game/Maps/TESTMAP?listen"), false);
+	world->ServerTravel(TEXT("/Game/Maps/L_Lobby?listen"), false);
 }
 
 //https://zeniff.tistory.com/23 코드.
@@ -353,7 +354,87 @@ void UMySessionSubsystem::JoinSessionComplete(FName SessionName, EOnJoinSessionC
 }
 
 
+void UMySessionSubsystem::OnSessionUserInviteAccept()
+{
+	if (!ESureOssInterfaces())
+	{
+		return;
+	}
+
+	if (!OnlineSessionInterface.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OnlineSession is nullptr"));
+		return;
+	}
+
+	if (SessionUserInviteAcceptedDelegateHandle.IsValid())
+	{
+		OnlineSessionInterface->ClearOnSessionUserInviteAcceptedDelegate_Handle(SessionUserInviteAcceptedDelegateHandle);
+		SessionUserInviteAcceptedDelegateHandle.Reset();
+	}
+
+	OnSessionUserInviteAcceptedDelegate = FOnSessionUserInviteAcceptedDelegate::CreateUObject(this, &UMySessionSubsystem::OnSessionUserInviteAccepted);
+	SessionUserInviteAcceptedDelegateHandle = OnlineSessionInterface->AddOnSessionUserInviteAcceptedDelegate_Handle(OnSessionUserInviteAcceptedDelegate);
+
+	
 
 
+}
+
+
+void UMySessionSubsystem::OnSessionUserInviteAccepted(const bool bWasSuccess, const int32 ControllerId, FUniqueNetIdPtr UserId, const FOnlineSessionSearchResult& InviteResult)
+{
+	UE_LOG(LogTemp, Warning, TEXT("[UMySessionSubsystem::OnSessionUserInviteAccepted] bWasSuccess = %s, ControllerId = %d"),
+		bWasSuccess ? TEXT("true") : TEXT("False"), ControllerId);
+
+	if (!bWasSuccess)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UMySessionSubsystem::OnSessionUserInviteAccepted] bWasSuccess = False"));
+		return;
+	}
+
+	if (!InviteResult.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UMySessionSubsystem::OnSessionUserInviteAccepted] InviteReusult is nullptr"));
+		return;
+	}
+
+	if (!UserId.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UMySessionSubsystem::OnSessionUserInviteAccepted] UserId is nullptr"));
+		return;
+	}
+
+	OnJoinSessionCompleteDelegate = FOnJoinSessionCompleteDelegate::CreateUObject(this, &UMySessionSubsystem::JoinSessionComplete);
+	JoinSessionCompleteDelegateHandle =
+		OnlineSessionInterface->AddOnJoinSessionCompleteDelegate_Handle(OnJoinSessionCompleteDelegate);
+
+	bool bjoinStarted = OnlineSessionInterface->JoinSession(*UserId, NAME_GameSession, InviteResult);
+
+	if (!bjoinStarted)
+	{
+		OnlineSessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegateHandle);
+		JoinSessionCompleteDelegateHandle.Reset();
+	}
+
+}
+
+void UMySessionSubsystem::ShowInviteUI()
+{
+
+	onlinesubsystem = IOnlineSubsystem::Get();
+
+	if (onlinesubsystem)
+	{
+		IOnlineExternalUIPtr onlineExternalUI = onlinesubsystem->GetExternalUIInterface();
+
+		bool bshowinvite = onlineExternalUI->ShowInviteUI(0, NAME_GameSession);
+
+		UE_LOG(LogTemp, Warning, TEXT("[UMySessionSubsystem::ShowInviteUI] showInviteUI = %s"), bshowinvite ? TEXT("true") : TEXT("false"));
+	}
+
+	
+	
+}
 
 
