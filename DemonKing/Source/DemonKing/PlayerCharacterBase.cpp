@@ -119,8 +119,12 @@ void APlayerCharacterBase::InputSkillQ()
 	}
 
 	bIsCastingSkill = true;
+
 	CommitSkill(ESkillSlot::Q);
+
 	BP_UseSkillQ();
+
+	bIsCastingSkill = false; // 추가
 }
 
 void APlayerCharacterBase::InputSkillE()
@@ -131,8 +135,12 @@ void APlayerCharacterBase::InputSkillE()
 	}
 
 	bIsCastingSkill = true;
+
 	CommitSkill(ESkillSlot::E);
+
 	BP_UseSkillE();
+
+	bIsCastingSkill = false; // 추가
 }
 
 void APlayerCharacterBase::InputSkillShift()
@@ -143,8 +151,12 @@ void APlayerCharacterBase::InputSkillShift()
 	}
 
 	bIsCastingSkill = true;
+
 	CommitSkill(ESkillSlot::Shift);
+
 	BP_UseSkillShift();
+
+	bIsCastingSkill = false; // 추가
 }
 
 void APlayerCharacterBase::PerformSkillQHitCheck()
@@ -209,4 +221,77 @@ void APlayerCharacterBase::PerformSkillQHitCheck()
 void APlayerCharacterBase::SetCastingSkill(bool bNewCasting)
 {
 	bIsCastingSkill = bNewCasting;
+}
+void APlayerCharacterBase::PerformSkillEHitCheck()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	const FVector Start = GetActorLocation() + GetActorForwardVector() * 40.0f;
+	const FVector End = Start + GetActorForwardVector() * SkillERange;
+
+	FCollisionShape Sphere = FCollisionShape::MakeSphere(SkillERadius);
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	TArray<FHitResult> HitResults;
+	const bool bHit = World->SweepMultiByChannel(
+		HitResults,
+		Start,
+		End,
+		FQuat::Identity,
+		ECC_Pawn,
+		Sphere,
+		Params
+	);
+
+	if (!bHit)
+	{
+		return;
+	}
+
+	for (const FHitResult& Hit : HitResults)
+	{
+		AActor* HitActor = Hit.GetActor();
+		if (!HitActor)
+		{
+			continue;
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("Skill E Hit: %s"), *HitActor->GetName());
+
+		// 나중에 ApplyDamage 추가
+	}
+}
+
+void APlayerCharacterBase::ActivateShieldSkill()
+{
+	bShieldActive = true;
+	CurrentShieldAmount = MaxShieldAmount;
+
+	if (GetWorld())
+	{
+		GetWorldTimerManager().ClearTimer(ShieldTimerHandle);
+		GetWorldTimerManager().SetTimer(
+			ShieldTimerHandle,
+			this,
+			&APlayerCharacterBase::EndShieldSkill,
+			ShieldDuration,
+			false
+		);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Shield Activated"));
+}
+
+void APlayerCharacterBase::EndShieldSkill()
+{
+	bShieldActive = false;
+	CurrentShieldAmount = 0.0f;
+
+	UE_LOG(LogTemp, Warning, TEXT("Shield Ended"));
 }

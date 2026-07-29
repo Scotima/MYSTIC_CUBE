@@ -29,6 +29,7 @@ protected:
 
 	bool FindGroundedSpawnTransform(FTransform& OutTransform) const;
 
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn")
 	float TraceStartZOffset = 500.f;
@@ -46,4 +47,16 @@ protected:
 	TObjectPtr<APlayerController> PendingPlayerController;
 
 	FTimerHandle SpawnRetryTimerHandle;
+
+protected:
+	TSubclassOf<APawn> GetSelectedPawnClass() const;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Classes")
+	TSubclassOf<APawn> WarriorPawnClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Classes")
+	TSubclassOf<APawn> MagePawnClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Classes")
+	TSubclassOf<APawn> ArcherPawnClass;
 };

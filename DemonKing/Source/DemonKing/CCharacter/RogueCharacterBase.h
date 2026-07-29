@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Materials/MaterialInterface.h"
 #include "RogueCharacterBase.generated.h"
 
 UCLASS()
@@ -31,19 +32,45 @@ public:
 	virtual void InputSkillQ();
 	virtual void InputSkillE();
 	virtual void InputSkillShift();
-	virtual void InputSkillLeftMouse();
-
-	FORCEINLINE void SetUsingSkill(bool a) { bUsingSkill = a; }
-	FORCEINLINE bool GetUsingSkill() { return bUsingSkill; }
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera")
-	TObjectPtr<class UCameraComponent> Camera;
+	UPROPERTY(Transient)
+		TObjectPtr<class UCameraComponent> OcclusionCamera;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera")
-	TObjectPtr<class USpringArmComponent> SpringArm;
-
+	UPROPERTY(Transient)
+	TObjectPtr<class USpringArmComponent> OcclusionSpringArm;
 
 protected:
-	bool bUsingSkill = false;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	void UpdateCameraOcclusionFade();
+	void FadeOccludingMesh(class UMeshComponent* MeshComponent);
+	void RestoreOccludingMesh(class UMeshComponent* MeshComponent);
+	void RestoreAllOccludingMeshes();
+	bool IsValidOcclusionTarget(const class UMeshComponent* MeshComponent) const;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera|Occlusion")
+	bool bEnableCameraOcclusionFade = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera|Occlusion")
+	float CameraOcclusionTraceRadius = 24.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera|Occlusion")
+	float CameraOcclusionFadeOpacity = 0.35f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera|Occlusion")
+	int32 CameraOcclusionMaxTraceCount = 16;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera|Occlusion")
+	TEnumAsByte<ECollisionChannel> CameraOcclusionTraceChannel = ECC_Visibility;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera|Occlusion")
+	TObjectPtr<UMaterialInterface> CameraOcclusionFadeMaterial;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera|Occlusion")
+	FName CameraOcclusionOpacityParameter = TEXT("Opacity");
+
+	TMap<class UMeshComponent*, TArray<TObjectPtr<UMaterialInterface>>> FadedOccluderMaterials;
+
 };

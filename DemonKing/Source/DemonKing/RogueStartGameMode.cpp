@@ -1,4 +1,5 @@
 #include "RogueStartGameMode.h"
+#include "GameFlow/MyGameInstance.h"
 
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -10,7 +11,7 @@
 
 ARogueStartGameMode::ARogueStartGameMode()
 {
-	//todo HandleStartingNvewPlayer_Implementation(APlayerController* NewPlayer) ÀÌ°É·Î ½ÇÇà½ÃÄÑº¸±â.
+	//todo HandleStartingNvewPlayer_Implementation(APlayerController* NewPlayer) ì´ê±¸ë¡œ ì‹¤í–‰ì‹œì¼œë³´ê¸°.
 }
 
 void ARogueStartGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
@@ -25,7 +26,7 @@ void ARogueStartGameMode::HandleStartingNewPlayer_Implementation(APlayerControll
 
 	PendingPlayerController = NewPlayer;
 
-	// ÀÌ¹Ì Å¸ÀÌ¸Ó°¡ µ¹°í ÀÖÁö ¾ÊÀ¸¸é ½ÃÀÛ
+	// ì´ë¯¸ íƒ€ì´ë¨¸ê°€ ëŒê³  ìžˆì§€ ì•Šìœ¼ë©´ ì‹œìž‘
 	if (!GetWorldTimerManager().IsTimerActive(SpawnRetryTimerHandle))
 	{
 		GetWorldTimerManager().SetTimer(
@@ -52,7 +53,7 @@ void ARogueStartGameMode::TrySpawnPendingPlayer()
 		return;
 	}
 
-	// ÀÌ¹Ì PawnÀÌ ÀÖÀ¸¸é Á¾·á
+	// ì´ë¯¸ Pawnì´ ìžˆìœ¼ë©´ ì¢…ë£Œ
 	if (PendingPlayerController->GetPawn())
 	{
 		GetWorldTimerManager().ClearTimer(SpawnRetryTimerHandle);
@@ -62,16 +63,16 @@ void ARogueStartGameMode::TrySpawnPendingPlayer()
 	FTransform SpawnTransform;
 	if (!FindGroundedSpawnTransform(SpawnTransform))
 	{
-		// ¾ÆÁ÷ ¹Ù´ÚÀÌ ÁØºñ ¾È µÆÀ¸¸é ´ÙÀ½ Æ½¿¡ ´Ù½Ã ½Ãµµ
+		// ì•„ì§ ë°”ë‹¥ì´ ì¤€ë¹„ ì•ˆ ëìœ¼ë©´ ë‹¤ìŒ í‹±ì— ë‹¤ì‹œ ì‹œë„
 		UE_LOG(LogTemp, Warning, TEXT("TrySpawning."));
 		return;
 	}
 
-	// ¹Ù´ÚÀ» Ã£¾ÒÀ» ¶§¸¸ ½ÇÁ¦ ½ºÆù
+	// ë°”ë‹¥ì„ ì°¾ì•˜ì„ ë•Œë§Œ ì‹¤ì œ ìŠ¤í°
 	RestartPlayer(PendingPlayerController);
 	UE_LOG(LogTemp, Warning, TEXT("[dddd]RestartPlayer"));
 
-	// ½ºÆù ¼º°ø ¿©ºÎ È®ÀÎ
+	// ìŠ¤í° ì„±ê³µ ì—¬ë¶€ í™•ì¸
 	if (PendingPlayerController->GetPawn())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("SuccessPawn"));
@@ -142,16 +143,18 @@ APawn* ARogueStartGameMode::SpawnDefaultPawnAtTransform_Implementation(
 	const FTransform& SpawnTransform)
 {
 	UWorld* World = GetWorld();
-	if (!World || !DefaultPawnClass)
+	TSubclassOf<APawn> SelectedPawnClass = GetSelectedPawnClass();
+
+	if (!World || !SelectedPawnClass)
 	{
 		return Super::SpawnDefaultPawnAtTransform_Implementation(NewPlayer, SpawnTransform);
 	}
 
-	// ¿©±â¼­µµ ÇÑ ¹ø ´õ ÃÖÁ¾ º¸Á¤
+	// ì—¬ê¸°ì„œë„ í•œ ë²ˆ ë” ìµœì¢… ë³´ì •
 	FTransform FinalTransform;
 	if (!FindGroundedSpawnTransform(FinalTransform))
 	{
-		// ¹Ù´Ú ¸ø Ã£À¸¸é ¾Æ¿¹ ½ºÆùÇÏÁö ¾ÊÀ½
+		// ë°”ë‹¥ ëª» ì°¾ìœ¼ë©´ ì•„ì˜ˆ ìŠ¤í°í•˜ì§€ ì•ŠìŒ
 		return nullptr;
 	}
 
@@ -161,7 +164,7 @@ APawn* ARogueStartGameMode::SpawnDefaultPawnAtTransform_Implementation(
 		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
 	APawn* SpawnedPawn = World->SpawnActor<APawn>(
-		DefaultPawnClass,
+		SelectedPawnClass,
 		FinalTransform,
 		SpawnParams
 	);
@@ -169,3 +172,30 @@ APawn* ARogueStartGameMode::SpawnDefaultPawnAtTransform_Implementation(
 	return SpawnedPawn;
 }
 
+TSubclassOf<APawn> ARogueStartGameMode::GetSelectedPawnClass() const
+{
+	const UMyGameInstance* GI = Cast<UMyGameInstance>(GetGameInstance());
+	if (!GI)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GI is null, returning WarriorPawnClass"));
+		return WarriorPawnClass;
+	}
+
+	switch (GI->SelectedPlayerClass)
+	{
+	case EPlayerClassType::Warrior:
+		UE_LOG(LogTemp, Warning, TEXT("Selected class: Warrior"));
+		return WarriorPawnClass;
+
+	case EPlayerClassType::Mage:
+		UE_LOG(LogTemp, Warning, TEXT("Selected class: Mage"));
+		return MagePawnClass;
+
+	case EPlayerClassType::Archer:
+		UE_LOG(LogTemp, Warning, TEXT("Selected class: Archer"));
+		return ArcherPawnClass;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Fallback to WarriorPawnClass"));
+	return WarriorPawnClass;
+}
