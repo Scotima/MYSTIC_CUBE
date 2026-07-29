@@ -1,4 +1,5 @@
 #include "RogueStartGameMode.h"
+#include "GameFlow/MyGameInstance.h"
 
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -131,7 +132,9 @@ APawn* ARogueStartGameMode::SpawnDefaultPawnAtTransform_Implementation(
 	const FTransform& SpawnTransform)
 {
 	UWorld* World = GetWorld();
-	if (!World || !DefaultPawnClass)
+	TSubclassOf<APawn> SelectedPawnClass = GetSelectedPawnClass();
+
+	if (!World || !SelectedPawnClass)
 	{
 		return Super::SpawnDefaultPawnAtTransform_Implementation(NewPlayer, SpawnTransform);
 	}
@@ -150,10 +153,38 @@ APawn* ARogueStartGameMode::SpawnDefaultPawnAtTransform_Implementation(
 		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
 	APawn* SpawnedPawn = World->SpawnActor<APawn>(
-		DefaultPawnClass,
+		SelectedPawnClass,
 		FinalTransform,
 		SpawnParams
 	);
 
 	return SpawnedPawn;
+}
+
+TSubclassOf<APawn> ARogueStartGameMode::GetSelectedPawnClass() const
+{
+	const UMyGameInstance* GI = Cast<UMyGameInstance>(GetGameInstance());
+	if (!GI)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GI is null, returning WarriorPawnClass"));
+		return WarriorPawnClass;
+	}
+
+	switch (GI->SelectedPlayerClass)
+	{
+	case EPlayerClassType::Warrior:
+		UE_LOG(LogTemp, Warning, TEXT("Selected class: Warrior"));
+		return WarriorPawnClass;
+
+	case EPlayerClassType::Mage:
+		UE_LOG(LogTemp, Warning, TEXT("Selected class: Mage"));
+		return MagePawnClass;
+
+	case EPlayerClassType::Archer:
+		UE_LOG(LogTemp, Warning, TEXT("Selected class: Archer"));
+		return ArcherPawnClass;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Fallback to WarriorPawnClass"));
+	return WarriorPawnClass;
 }
