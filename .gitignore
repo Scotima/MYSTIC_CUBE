@@ -25,7 +25,7 @@
 *.app
 *.pdb
 *.log
-
+*.uasset
 # ===============================
 # Unreal Engine generated (DemonKing project)
 # ===============================
@@ -60,12 +60,5 @@ DemonKing/SourceArt/**/*.tga
 # ===============================
 # Optional: 개인 테스트용 BP 폴더 (팀 공용이면 삭제!)
 # ===============================
-DemonKing/Content/BPAsset/
-DemonKing/Content/BPWidget/
-DemonKing/Content/Viking/
-DemonKing/Content/HUD/*
-DemonKing/Content/__ExternalActors__/
-DemonKing/Content/__ExternalObjects__/
-DemonKing/Content/ModularShowcase/
-DemonKing/Content/AC_Enchanted_Backgrounds/
-DemonKing/Content/PathOfAdventure/
+DemonKing/Content/*
+DemonKing/.vscode/

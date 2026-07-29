@@ -5,6 +5,9 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "MySessionSubsystem.generated.h"
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSessionDestroyComplete, bool, bWasSuccessful);
+
 UENUM(BlueprintType)
 
 enum class ESessionFlowState : uint8
@@ -48,6 +51,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void ShowInviteUI();
 
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void ReturnToLobby();
+
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void ReturnToLobbyComplete(FName SessionName, bool bWasSuccessful);
 
 	
 
@@ -71,6 +79,8 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Lobby")
 	FString LobbyMapPath = TEXT("/Game/Maps/L_MainMenu");
+
+	FOnSessionDestroyComplete OnSessionDestroyComplete;
 
 
 private:
@@ -96,6 +106,12 @@ private:
 
 	FOnSessionUserInviteAcceptedDelegate OnSessionUserInviteAcceptedDelegate;
 	FDelegateHandle SessionUserInviteAcceptedDelegateHandle;
+
+	FOnDestroySessionCompleteDelegate OnDestroySessionCompleteDelegate;
+	FDelegateHandle DestroySessionCompleteDelegateHandle;
+
+
+
 
 
 	class IOnlineSubsystem* onlinesubsystem = nullptr;

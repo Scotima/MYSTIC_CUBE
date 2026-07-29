@@ -10,11 +10,13 @@
 
 ARogueStartGameMode::ARogueStartGameMode()
 {
+	//todo HandleStartingNvewPlayer_Implementation(APlayerController* NewPlayer) 이걸로 실행시켜보기.
 }
 
-void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
+void ARogueStartGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
-	Super::PostLogin(NewPlayer);
+	UE_LOG(LogTemp, Warning, TEXT("[ARogueStartGameMode::HandleStartingNewPlayer_Implementation]"));
+
 
 	if (!NewPlayer)
 	{
@@ -36,6 +38,12 @@ void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 }
 
+
+void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	
+}
+
 void ARogueStartGameMode::TrySpawnPendingPlayer()
 {
 	if (!PendingPlayerController)
@@ -55,15 +63,18 @@ void ARogueStartGameMode::TrySpawnPendingPlayer()
 	if (!FindGroundedSpawnTransform(SpawnTransform))
 	{
 		// 아직 바닥이 준비 안 됐으면 다음 틱에 다시 시도
+		UE_LOG(LogTemp, Warning, TEXT("TrySpawning."));
 		return;
 	}
 
 	// 바닥을 찾았을 때만 실제 스폰
 	RestartPlayer(PendingPlayerController);
+	UE_LOG(LogTemp, Warning, TEXT("[dddd]RestartPlayer"));
 
 	// 스폰 성공 여부 확인
 	if (PendingPlayerController->GetPawn())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("SuccessPawn"));
 		GetWorldTimerManager().ClearTimer(SpawnRetryTimerHandle);
 	}
 }
@@ -157,3 +168,4 @@ APawn* ARogueStartGameMode::SpawnDefaultPawnAtTransform_Implementation(
 
 	return SpawnedPawn;
 }
+
