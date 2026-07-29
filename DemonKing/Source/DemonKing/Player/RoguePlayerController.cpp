@@ -11,11 +11,12 @@
 #include "DemonKing/Online/MySessionSubsystem.h"
 #include "DemonKing/CCharacter/RogueCharacterBase.h"
 #include "RoguePlayerController.h"
+#include "DemonKing/SkillComponent/CKnightSkillComponent.h"
 
 
 ARoguePlayerController::ARoguePlayerController()
 {
-	bCanInput = true;
+	
 }
 
 void ARoguePlayerController::BeginPlay()
@@ -50,19 +51,15 @@ void ARoguePlayerController::Tick(float Deltatime)
 
 void ARoguePlayerController::LookMouseCursor()
 {
-	if (bCanInput)
-	{
-		bCanInput = false;
-		SetIgnoreMoveInput(true);
+	APawn* const MyPawn = GetPawn();
 
-	}
+	
 
 	FHitResult Hit;
 	GetHitResultUnderCursor(ECC_Visibility, false, Hit);
 
 	if (Hit.bBlockingHit)
 	{
-		APawn* const MyPawn = GetPawn();
 
 		if (MyPawn)
 		{

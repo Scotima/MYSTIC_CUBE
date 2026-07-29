@@ -71,6 +71,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SkillComponent")
 	TObjectPtr<class UCKnightSkillComponent> KnightSkillComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "StatComponent")
+	TObjectPtr<class UCCharacterStatComponent> KnightStatComponent;
+
 private:
 	bool bCanComboInput;
 	int32 ComboIndex;

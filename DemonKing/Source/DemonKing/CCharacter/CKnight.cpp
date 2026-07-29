@@ -7,11 +7,13 @@
 #include "Animation/AnimMontage.h"
 #include "DemonKing/SkillComponent/CKnightSkillComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
+
 ACKnight::ACKnight()
 {
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	KnightSkillComponent = CreateDefaultSubobject<UCKnightSkillComponent>(TEXT("KnightSkillComponent"));
-
+	KnightStatComponent = CreateDefaultSubobject<UCCharacterStatComponent>(TEXT("KnightStatComponent"));
 	
 	
 	WeaponMesh->SetupAttachment(GetMesh(), WeaponSocketName);

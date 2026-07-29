@@ -39,14 +39,6 @@ public:
 	void AdvanceMapWithinStage();
 
 
-	UFUNCTION(Exec)
-	void SV_Save();
-
-	UFUNCTION(Exec)
-	void SV_Load();
-
-	UFUNCTION(EXec)
-	void SV_Delete();
 
 
 
@@ -89,10 +81,7 @@ private:
 	bool EnsureServerAuth(const TCHAR* FuncName) const;
 
 	int32 GetStageOrderIndexSafe(const FName& StageId) const;
-	int32 GenerateRunSeed() const;
-	int32 MakeDeterministicSeed(int32 RunSeed, int32 StageIndex, int32 Step, int32 Salt) const;
-	int32 PickStageMapIndex_Seeded(const FName& StageId, int32 RunSeed, int32 StageIndex, int32 Step, int32 CurrentIndex) const;
-	int32 MakeStageSeed_Seeded(int32 RunSeed, int32 StageIndex, int32 Step) const;
+	
 
 	class URogueSaveSubsystem* GetSaveSS() const;
 

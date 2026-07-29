@@ -34,6 +34,9 @@ public:
 
 	void DoTrace(const FBoxTraceData& BoxTraceData);
 
+	FORCEINLINE void SetCanInput(bool a) { bCanInput = a; }
+	FORCEINLINE bool GetCanInput() { return bCanInput; }
+
 private:
 	FCharacterSkillStruct* GetSkillDataTable(FName rowname);
 
@@ -60,5 +63,7 @@ private:
 	int BeforeSKillId = 0;
 
 	bool MotionEnd = true;
+
+	bool bCanInput = true;
 		
 };

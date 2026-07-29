@@ -50,7 +50,7 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void Server_SetLobbyNickName(const FString& newname);
 
-	FORCEINLINE void SetCanInput(bool a) { bCanInput = a; }
+
 
 private:
 	virtual void SetupInputComponent() override;
@@ -114,6 +114,5 @@ private:
 private:
 	ETypeControll Mode = ETypeControll::Main;
 
-	bool bCanInput = true;
 	
 };

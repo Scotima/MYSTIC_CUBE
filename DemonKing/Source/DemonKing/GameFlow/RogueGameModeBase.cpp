@@ -32,6 +32,8 @@ ARogueGameModeBase::ARogueGameModeBase()
         StageToMaps.Add(FName("Stage_03"),List3);
     }
 
+
+
 }
 
 void ARogueGameModeBase::StartRun()
@@ -57,10 +59,10 @@ void ARogueGameModeBase::StartRun()
     APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
     URogueSaveSubsystem* SaveSS = GetSaveSS();
 
-    FName StageId = (StageOrder.Num() > 0) ? StageOrder[0] : FName("Stage_01");
+    FName StageId = FName("Stage_01");
     int32 StageMapIndex = 0;
-    int32 RunSeed = 0;
-    int32 StageSeed = 0;
+    int32 RunSeed = 0;// 안쓰는거
+    int32 StageSeed = 0;//안쓰는거
 
     const bool bResumed = (SaveSS) ? SaveSS->LoadOrStartNewRun(PC, StageId, StageMapIndex, RunSeed, StageSeed) : false;
 
@@ -70,9 +72,9 @@ void ARogueGameModeBase::StartRun()
     GS->SetEndReason(ERogueRunEndReason::None);
     GS->SetRunActive(true);
 
-    GS->SetRunSeed(RunSeed);
+    //GS->SetRunSeed(RunSeed);
     GS->SetStageMapIndex(StageMapIndex);
-    GS->SetStageSeed(StageSeed);
+    //GS->SetStageSeed(StageSeed);
 
 
 
@@ -86,7 +88,7 @@ void ARogueGameModeBase::StartRun()
    
 }
 
-void ARogueGameModeBase::AdvanceStage()
+void ARogueGameModeBase::AdvanceStage() // MapIndex 종료되면 다음 스테이지로 넘어감. // 넘어 갈 때 호출. // 즉 한 스테이지 당 한번만 호출하면 됨.
 {
     if (!EnsureServerAuth(TEXT("AdvaceStage")))
     {
@@ -107,7 +109,10 @@ void ARogueGameModeBase::AdvanceStage()
     }
 
     const FName Current = GS->GetStageId();
-    const FName Next = GetNextStageId(Current);
+    //const FName Next = GetNextStageId(Current);
+    int32 index = 0;
+    index++;
+    FName Next = StageOrder[index]; //StageOrder의 필요성? 추후 그냥 CSV로 해도 되려나..
 
     //마지막 스테이지 이후면 보스킬/성공 처리 (원하는 정책으로 변경 가능)
     if (Next.IsNone())
@@ -115,21 +120,21 @@ void ARogueGameModeBase::AdvanceStage()
         EndRun(ERogueRunEndReason::BossKilled);
         return;
     }
-
+    GS->SetStageMapIndex(0);//어차피 다음 스테이지로 넘어가는거면 초기화 해도 될듯.
     GS->SetStageId(Next);
 
-    const int32 RunSeed = GS->GetRunSeed();
-    const int32 NextStageIndex = GetStageOrderIndexSafe(Next);
+    //const int32 RunSeed = GS->GetRunSeed();
+    //const int32 NextStageIndex = GetStageOrderIndexSafe(Next);
 
-    // 다음 스테이지 첫 맵도 시드 기반 선택.
+    //// 다음 스테이지 첫 맵도 시드 기반 선택.
 
-    const int32 PickedMapIndex = PickStageMapIndex_Seeded(Next, RunSeed, NextStageIndex, StageStep_Runtime, GS->GetStageMapIndex());
-    GS->SetStageMapIndex(PickedMapIndex);
+    //const int32 PickedMapIndex = PickStageMapIndex_Seeded(Next, RunSeed, NextStageIndex, StageStep_Runtime, GS->GetStageMapIndex());
+    //GS->SetStageMapIndex(PickedMapIndex);
 
-    const int32 StageSeed = MakeStageSeed_Seeded(RunSeed, NextStageIndex, StageStep_Runtime);
-    GS->SetStageSeed(StageSeed);
+    //const int32 StageSeed = MakeStageSeed_Seeded(RunSeed, NextStageIndex, StageStep_Runtime);
+    //GS->SetStageSeed(StageSeed);
 
-    GS->SetStageMapIndex(GS->GetStageMapIndex());
+    //GS->SetStageMapIndex(GS->GetStageMapIndex());
 
     //다음 스테이지로 트래블(현재는 L_Run 고정)
     ServerTravelToStage(Next, GS->GetStageMapIndex());
@@ -159,7 +164,7 @@ void ARogueGameModeBase::EndRun(ERogueRunEndReason Reason)
     }
 }
 // 같은 스테이지 내부 다음 맵으로 이동(포탈 UI에서 예를 누르면 호출)
-void ARogueGameModeBase::AdvanceMapWithinStage()
+void ARogueGameModeBase::AdvanceMapWithinStage() // 맵 포탈 기능 구현시 그쪽 클래스에서 호출.
 {
     if (!EnsureServerAuth(TEXT("AdvanceMapWithinStage")))
     {
@@ -180,19 +185,23 @@ void ARogueGameModeBase::AdvanceMapWithinStage()
         return;
     }
 
-    const FName CurrentStage = GS->GetStageId();
+    const FName CurrentStage = GS->GetStageId(); // 스테이지 Id를 가져옴
 
     //현재 스테이지의 맵 리스트 가져오기
-    const FStageMapList* List = StageToMaps.Find(CurrentStage);
+    const FStageMapList* List = StageToMaps.Find(CurrentStage); //근데 맵 리스트에 대한 정보가 부족하지 않나
 
-    if (!List || List->MapPaths.Num() == 0)
+    int32 StageIndex = GS->GetStageMapIndex(); // 맵 리스트도 같이 정리.
+    StageIndex++;
+
+    if (!List || List->MapPaths.IsEmpty())
     {
         UE_LOG(LogTemp, Warning, TEXT("AdvanceMapWithinStage failed: No MapPaths for StageId=%s"), *CurrentStage.ToString());
         return;
     }
 
-    //스테이지 내부 스텝을 올리고, 시드 기반으로 맵을 다시 선택 + 맵이 그대로여도 StageSeed는 매번 바뀌어서 콘텐츠가 달라짐
-    StageStep_Runtime++;
+    //스테이지 내부 스텝을 올리고, 시드 기반으로 맵을 다시 선택 + 맵이 그대로여도 StageSeed는 매번 바뀌어서 콘텐츠가 달라짐 // 시드 자체가 필요한지 의문 그냥 단계
+    //이어가는 방식 또한 괜찮아 보임.
+   /* StageStep_Runtime++;
 
     const int32 RunSeed = GS->GetRunSeed();
     const int32 StageIndex = GetStageOrderIndexSafe(CurrentStage);
@@ -205,106 +214,16 @@ void ARogueGameModeBase::AdvanceMapWithinStage()
         StageStep_Runtime,
         CurrentMapIndex);
 
-    GS->SetStageMapIndex(PickedMapIndex);
+    GS->SetStageMapIndex(PickedMapIndex);*/
 
     //같은 맵이여도 콘텐츠 랜덤을 바꾸는 핵심
-    const int32 StageSeed = MakeStageSeed_Seeded(RunSeed, StageIndex, StageStep_Runtime);
-    GS->SetStageSeed(StageSeed);
+    //const int32 StageSeed = MakeStageSeed_Seeded(RunSeed, StageIndex, StageStep_Runtime);
+    //GS->SetStageSeed(StageSeed);
 
     ServerTravelToStage(CurrentStage, GS->GetStageMapIndex());
 
 }
 
-void ARogueGameModeBase::SV_Save()
-{
-    if (!EnsureServerAuth(TEXT("SV_Save")))
-    {
-        return;
-    }
-
-    URogueSaveSubsystem* SaveSS = GetSaveSS();
-    if (!SaveSS)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("SV_Save failed: SaveSubsystem not found"));
-        return;
-    }
-
-    APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
-
-    SaveSS->SaveOnQuit(PC);
-
-    UE_LOG(LogTemp, Warning, TEXT("SV_Save: Save completed"));
-}
-
-void ARogueGameModeBase::SV_Load()
-{
-    if (!EnsureServerAuth(TEXT("SV_Load")))
-    {
-        return;
-    }
-
-    URogueSaveSubsystem* SaveSS = GetSaveSS();
-
-    if (!SaveSS)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("SV_Load failed: SaveSubsystem not found"));
-        return;
-    }
-
-    APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
-
-    FName StageId;
-    int32 StageMapIndex;
-    int32 RunSeed;
-    int32 StageSeed;
-
-    const bool bLoaded = SaveSS->LoadOrStartNewRun(PC, StageId, StageMapIndex, RunSeed, StageSeed);
-
-    if (!bLoaded)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("SV_Load: No save found, nothing loaded"));
-        return;
-    }
-
-    ARogueGameState* GS = GetRogueGS();
-    StageStep_Runtime = 0;
-
-    GS->SetStageId(StageId);
-    GS->SetRunActive(true);
-    GS->SetEndReason(ERogueRunEndReason::None);
-
-    GS->SetRunSeed(RunSeed);
-    GS->SetStageMapIndex(StageMapIndex);
-    GS->SetStageSeed(StageSeed);
-
-    UE_LOG(LogTemp, Warning, TEXT("SV_Load: Stage = %s MapIndex = %d RunSeed = %d StageSeed = %d "),
-        *StageId.ToString(), StageMapIndex, RunSeed, StageSeed);
-
-    ServerTravelToStage(StageId, StageMapIndex);
-
-
-}
-
-void ARogueGameModeBase::SV_Delete()
-{
-    if (!EnsureServerAuth(TEXT("SV_Delete")))
-    {
-        return;
-    }
-
-    URogueSaveSubsystem* SaveSS = GetSaveSS();
-    if (!SaveSS)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("SV_Delete failed: SaveSubsystem not found"));
-        return;
-    }
-
-    SaveSS->DeleteRunSave();
-
-    UE_LOG(LogTemp, Warning, TEXT("SV_Delete: Save deleted"));
-
-
-}
 
 void ARogueGameModeBase::StartPlay()
 {
@@ -383,11 +302,11 @@ void ARogueGameModeBase::ServerTravelToStage(const FName& StageId, int32 StageMa
 {
     if (UWorld* World = GetWorld())
     {
-        const FStageMapList* List = StageToMaps.Find(StageId);
+        const FStageMapList* List = StageToMaps.Find(StageId); //TMap에서 정보를 하나씩 꺼내기 위한 코드.
 
         //매핑이 없거나 비었으면 DefaultRunMapPath로 fallback
 
-        if (!List || List->MapPaths.Num() == 0)
+        if (!List || List->MapPaths.IsEmpty())
         {
             UE_LOG(LogTemp, Warning, TEXT("No MapPaths for %s. Fallback to DefaultRunMapPath=%s"), *StageId.ToString(), *DefaultRunMapPath);
 
@@ -398,11 +317,12 @@ void ARogueGameModeBase::ServerTravelToStage(const FName& StageId, int32 StageMa
 
         //인덱스 안전 처리.
 
-        const int32 SafeIndex = FMath::Clamp(StageMapIndex, 0, List->MapPaths.Num() - 1);
+        if (!List->MapPaths.IsValidIndex(StageMapIndex)) // 안전하게 처리하기 위함.
+        {
+            return;
+        }
 
-        const FString Target = List->MapPaths[SafeIndex].ToString();
-        UE_LOG(LogTemp, Warning, TEXT("ServerTravelToStage: Stage=%s Index=%d Target=%s"),
-            *StageId.ToString(), SafeIndex, *Target);
+        const FString Target = List->MapPaths[StageMapIndex].ToString();
 
         World->ServerTravel(Target);
     }
@@ -424,60 +344,6 @@ int32 ARogueGameModeBase::GetStageOrderIndexSafe(const FName& StageId) const
 {
     const int32 Idx = StageOrder.IndexOfByKey(StageId);
     return (Idx == INDEX_NONE) ? 0 : Idx;
-}
-
-int32 ARogueGameModeBase::GenerateRunSeed() const
-{
-    return FMath::Rand();
-}
-
-int32 ARogueGameModeBase::MakeDeterministicSeed(int32 RunSeed, int32 StageIndex, int32 Step, int32 Salt) const
-{
-    int32 Seed = RunSeed;
-    Seed = Seed * 196613 + (StageIndex + 1) * 1013;
-    Seed = Seed * 196613 + (Step + 1) * 9176;
-    Seed = Seed * 196613 + (Salt + 1) * 271;
-    return Seed;
-}
-
-int32 ARogueGameModeBase::PickStageMapIndex_Seeded(const FName& StageId, int32 RunSeed, int32 StageIndex, int32 Step, int32 CurrentIndex) const
-{
-    const FStageMapList* List = StageToMaps.Find(StageId);
-    if (!List || List->MapPaths.Num() <= 0)
-    {
-        return 0;
-    }
-
-    if (List->MapPaths.Num() == 1)
-    {
-        return 0;
-    }
-
-    // 맵 선택 용 스트림 (StageSeed랑 분리해서 관리.)
-    const int32 MapPickSeed = MakeDeterministicSeed(RunSeed, StageIndex, Step, 12345);
-    FRandomStream Stream(MapPickSeed);
-
-    if (bAllowSameMapRepeat)
-    {
-        const float Roll = Stream.FRand();
-        if (Roll < KeepSameMapChance)
-        {
-            return FMath::Clamp(CurrentIndex, 0, List->MapPaths.Num() - 1);
-        }
-
-    }
-
-    const int32 Picked = Stream.RandRange(0, List->MapPaths.Num() - 1);
-    return Picked;
-}
-
-int32 ARogueGameModeBase::MakeStageSeed_Seeded(int32 RunSeed, int32 StageIndex, int32 Step) const
-{ 
-    //추가 콘텐츠 배치용 시드
-    const int32 ContentSeed = MakeDeterministicSeed(RunSeed, StageIndex, Step, 98765);
-
-    FRandomStream Stream(ContentSeed);
-    return Stream.RandRange(INT32_MIN, INT32_MAX);
 }
 
 URogueSaveSubsystem* ARogueGameModeBase::GetSaveSS() const

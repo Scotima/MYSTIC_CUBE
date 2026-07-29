@@ -20,11 +20,15 @@ void UAN_AnimMotionEnd::Notify(USkeletalMeshComponent *MeshComp, UAnimSequenceBa
             ARoguePlayerController *Controller = Cast<ARoguePlayerController>(OwnerCharacter->GetController());
             if (Controller)
             {
-                Controller->SetIgnoreMoveInput(false);
-                Controller->SetCanInput(true);
+                if (!KnightSkillComponent->GetCanInput())
+                {
+                    KnightSkillComponent->SetCanInput(true);
 
-                
+                    Controller->SetIgnoreMoveInput(false);
+                    UE_LOG(LogTemp, Warning, TEXT("SetIgnoreMoveInput"));
+                }
             }
+
         }
     }
 }

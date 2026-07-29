@@ -5,6 +5,8 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Engine/EngineTypes.h"
+#include "DemonKing/ActorComponent/EnemyComponent/CEnemyStatComponent.h"
+#include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
 
 UCKnightSkillComponent::UCKnightSkillComponent()
 {
@@ -85,6 +87,34 @@ void UCKnightSkillComponent::DoTrace(const FBoxTraceData& BoxTraceData)
 	if (Hit)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("HIT"));
+
+		TSet<AActor*> AlreadyHitActors; // HashAlgorithm
+
+		for (const FHitResult& HitResult : HitResults)
+		{
+			AActor* HitActor = HitResult.GetActor();
+
+			if (!HitActor || HitActor == Owner)
+			{
+				continue;
+			}
+
+			if (AlreadyHitActors.Contains(HitActor))
+			{
+				continue;
+			}
+
+			AlreadyHitActors.Add(HitActor);
+
+			UCEnemyStatComponent* Enemy = HitActor->FindComponentByClass<UCEnemyStatComponent>();
+
+			if (!Enemy)
+			{
+				continue;
+			}
+
+			Enemy->TakeDamage(100, 100, 100); //Temponary
+		}
 	}
 
 
@@ -134,6 +164,11 @@ void UCKnightSkillComponent::UseSkill(int SkillID, int32 ComboIndex)
 
 		if (OwnerCharacter)
 		{
+			if (bCanInput == true)
+			{
+				bCanInput = false;
+				OwnerCharacter->GetController()->SetIgnoreMoveInput(true); // 캐릭터가 다음 애니메이션 재생이 안될 시 문제가 생겨 여기로 옮김.
+			}
 			UE_LOG(LogTemp, Warning, TEXT("[UCKnightSkillComponent::UseSkill] UseSKill"));
 			OwnerCharacter->PlaySkillMotion(animMontage); //즉시 애니메이션이 재생되는 문제.
 			float WorldTime =GetWorld()->GetTimeSeconds();
