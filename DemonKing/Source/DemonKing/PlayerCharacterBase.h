@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "CCharacter/RogueCharacterBase.h"
 #include "PlayerCharacterBase.generated.h"
 
 UENUM(BlueprintType)
@@ -13,7 +13,7 @@ enum class ESkillSlot : uint8
 };
 
 UCLASS()
-class DEMONKING_API APlayerCharacterBase : public ACharacter
+class DEMONKING_API APlayerCharacterBase : public ARogueCharacterBase
 {
 	GENERATED_BODY()
 
@@ -25,9 +25,9 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
-	void InputSkillQ();
-	void InputSkillE();
-	void InputSkillShift();
+	virtual void InputSkillQ() override;
+	virtual void InputSkillE() override;
+	virtual void InputSkillShift() override;
 
 	bool CanUseSkill(ESkillSlot SkillSlot) const;
 	void CommitSkill(ESkillSlot SkillSlot);
@@ -47,28 +47,36 @@ public:
 	// BP에서 애니메이션 노티파이 시점에 호출하기 좋게 public으로 둠
 	UFUNCTION(BlueprintCallable, Category = "Skill")
 	void PerformSkillQHitCheck();
+	UFUNCTION(BlueprintCallable, Category = "Skill")
+	void PerformSkillEHitCheck();
+
+	UFUNCTION(BlueprintCallable, Category = "Skill")
+	void ActivateShieldSkill();
+
+	UFUNCTION(BlueprintCallable, Category = "Skill")
+	void EndShieldSkill();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Cooldown")
-	float SkillQCooldown = 2.0f;
+	float SkillQCooldown = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Cooldown")
-	float SkillECooldown = 5.0f;
+	float SkillECooldown = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Cooldown")
-	float SkillShiftCooldown = 8.0f;
+	float SkillShiftCooldown = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Cost")
 	float CurrentMana = 100.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Cost")
-	float SkillQManaCost = 10.0f;
+	float SkillQManaCost = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Cost")
-	float SkillEManaCost = 20.0f;
+	float SkillEManaCost = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Cost")
-	float SkillShiftManaCost = 15.0f;
+	float SkillShiftManaCost = 0.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill")
 	bool bIsCastingSkill = false;
@@ -78,10 +86,33 @@ protected:
 	float SkillQRange = 180.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Q")
-	float SkillQRadius = 100.0f;
+	float SkillQRadius = 80.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Q")
 	float SkillQDamage = 25.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|E")
+	float SkillERange = 120.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|E")
+	float SkillERadius = 100.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|E")
+	float SkillEDamage = 15.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Shift")
+	bool bShieldActive = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Shift")
+	float MaxShieldAmount = 50.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Shift")
+	float CurrentShieldAmount = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Shift")
+	float ShieldDuration = 3.0f;
+
+	FTimerHandle ShieldTimerHandle;
 
 private:
 	float LastSkillQTime = -1000.0f;
@@ -91,3 +122,4 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Skill")
 	void SetCastingSkill(bool bNewCasting);
 };
+

@@ -4,12 +4,20 @@
 #include "DemonKing/CWidget/LobbyWidget.h"
 #include "Components/VerticalBox.h"
 #include "GameFramework/PlayerState.h" 
+#include "Components/Button.h"
+#include "DemonKing/Online/MySessionSubsystem.h"
+
 
 void ULobbyMainWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	mySubsystem = nullptr;
+
 	RefreshPlayerList();
+
+	BackButton->OnClicked.AddDynamic(this, &ULobbyMainWidget::HandleReturnToLobby);
+	btn_InviteButton->OnClicked.AddDynamic(this, &ULobbyMainWidget::ShowInviteWidget);
 }
 
 void ULobbyMainWidget::RefreshPlayerList()
@@ -58,3 +66,41 @@ void ULobbyMainWidget::RefreshPlayerList()
 	}
 	UE_LOG(LogTemp, Warning, TEXT("[ULobbyMainWidget::RefreshPlayerList]"));
 }
+
+void ULobbyMainWidget::HandleReturnToLobby()
+{
+	mySubsystem = GetMYSS();
+
+	if (mySubsystem)
+	{
+		mySubsystem->ReturnToLobby();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ULobbyMainWidget::ShowInviteWidget] mySubsystem nullptr"));
+		return;
+	}
+}
+
+void ULobbyMainWidget::ShowInviteWidget()
+{
+	mySubsystem = GetMYSS();
+
+	if (mySubsystem)
+	{
+		mySubsystem->ShowInviteUI();
+	}
+
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ULobbyMainWidget::ShowInviteWidget] mySubsystem nullptr"));
+		return;
+	}
+}
+
+UMySessionSubsystem* ULobbyMainWidget::GetMYSS()
+{
+	return GetGameInstance() ? GetGameInstance()->GetSubsystem<UMySessionSubsystem>() : nullptr;
+}
+
+

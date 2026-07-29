@@ -32,7 +32,7 @@ protected:
 
 
 public:
-	//https://parkcy723.tistory.com/104 ÄÚµå
+	//https://parkcy723.tistory.com/104 ï¿½Úµï¿½
 
 	UFUNCTION()
 	void LookMouseCursor();
@@ -50,6 +50,8 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void Server_SetLobbyNickName(const FString& newname);
 
+
+
 private:
 	virtual void SetupInputComponent() override;
 
@@ -60,6 +62,16 @@ private:
 
 	void OnJumpPressed();
 	void OnJumpReleased();
+
+	void OnMouseLeftClick();
+	void OnMouseLeftReleased();
+	void OnQPressed();
+	void OnQDePressed();
+	void OnEPressed();
+	void OnEDePressed();
+
+	void OnShiftPressed();
+	
 
 
 private:
@@ -75,6 +87,9 @@ private:
 
 	UFUNCTION()
 	void SubmitMyLobbyNickName();
+
+	UFUNCTION()
+	void BackToLobby(bool bWasSuccessful);
 
 public:
 
@@ -92,7 +107,12 @@ private:
 	UPROPERTY()
 	UUserWidget* StartGameWidget;
 
+	UPROPERTY()
+	TObjectPtr<class ARogueCharacterBase> characterBase;
+
+
 private:
-	ETypeControll Mode = ETypeControll::Main;	
+	ETypeControll Mode = ETypeControll::Main;
+
 	
 };

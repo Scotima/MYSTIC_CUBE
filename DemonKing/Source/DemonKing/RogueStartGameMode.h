@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "DemonKing/GameFlow/RogueGameModeBase.h"
 #include "RogueStartGameMode.generated.h"
 
 class AController;
@@ -10,7 +11,7 @@ class AActor;
 class APlayerController;
 
 UCLASS()
-class DEMONKING_API ARogueStartGameMode : public AGameModeBase
+class DEMONKING_API ARogueStartGameMode : public ARogueGameModeBase
 {
 	GENERATED_BODY()
 
@@ -21,11 +22,13 @@ protected:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	virtual APawn* SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform) override;
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 
 	UFUNCTION()
 	void TrySpawnPendingPlayer();
 
 	bool FindGroundedSpawnTransform(FTransform& OutTransform) const;
+
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn")
@@ -44,4 +47,16 @@ protected:
 	TObjectPtr<APlayerController> PendingPlayerController;
 
 	FTimerHandle SpawnRetryTimerHandle;
+
+protected:
+	TSubclassOf<APawn> GetSelectedPawnClass() const;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Classes")
+	TSubclassOf<APawn> WarriorPawnClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Classes")
+	TSubclassOf<APawn> MagePawnClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Classes")
+	TSubclassOf<APawn> ArcherPawnClass;
 };
