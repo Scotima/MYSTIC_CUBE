@@ -228,19 +228,19 @@ void ARogueCharacterBase::RestoreAllOccludingMeshes()
 
 void ARogueCharacterBase::InputSkillQ()
 {
-	//ÀÚ½Ä¿¡¼­ ÀçÁ¤ÀÇ
+	//ìì‹ì—ì„œ ì¬ì •ì˜
 }
 
 
 void ARogueCharacterBase::InputSkillE()
 {
-	//ÀÚ½Ä¿¡¼­ ÀçÁ¤ÀÇ
+	//ìì‹ì—ì„œ ì¬ì •ì˜
 }
 
 
 void ARogueCharacterBase::InputSkillShift()
 {
-	//ÀÚ½Ä¿¡¼­ ÀçÁ¤ÀÇ
+	//ìì‹ì—ì„œ ì¬ì •ì˜
 }
 
 

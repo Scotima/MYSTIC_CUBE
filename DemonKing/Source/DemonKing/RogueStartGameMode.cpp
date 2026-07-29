@@ -11,11 +11,13 @@
 
 ARogueStartGameMode::ARogueStartGameMode()
 {
+	//todo HandleStartingNvewPlayer_Implementation(APlayerController* NewPlayer) ì´ê±¸ë¡œ ì‹¤í–‰ì‹œì¼œë³´ê¸°.
 }
 
-void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
+void ARogueStartGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
-	Super::PostLogin(NewPlayer);
+	UE_LOG(LogTemp, Warning, TEXT("[ARogueStartGameMode::HandleStartingNewPlayer_Implementation]"));
+
 
 	if (!NewPlayer)
 	{
@@ -24,7 +26,7 @@ void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
 
 	PendingPlayerController = NewPlayer;
 
-	// ÀÌ¹Ì Å¸ÀÌ¸Ó°¡ µ¹°í ÀÖÁö ¾ÊÀ¸¸é ½ÃÀÛ
+	// ì´ë¯¸ íƒ€ì´ë¨¸ê°€ ëŒê³  ìˆì§€ ì•Šìœ¼ë©´ ì‹œì‘
 	if (!GetWorldTimerManager().IsTimerActive(SpawnRetryTimerHandle))
 	{
 		GetWorldTimerManager().SetTimer(
@@ -37,6 +39,12 @@ void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 }
 
+
+void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	
+}
+
 void ARogueStartGameMode::TrySpawnPendingPlayer()
 {
 	if (!PendingPlayerController)
@@ -45,7 +53,7 @@ void ARogueStartGameMode::TrySpawnPendingPlayer()
 		return;
 	}
 
-	// ÀÌ¹Ì PawnÀÌ ÀÖÀ¸¸é Á¾·á
+	// ì´ë¯¸ Pawnì´ ìˆìœ¼ë©´ ì¢…ë£Œ
 	if (PendingPlayerController->GetPawn())
 	{
 		GetWorldTimerManager().ClearTimer(SpawnRetryTimerHandle);
@@ -55,16 +63,19 @@ void ARogueStartGameMode::TrySpawnPendingPlayer()
 	FTransform SpawnTransform;
 	if (!FindGroundedSpawnTransform(SpawnTransform))
 	{
-		// ¾ÆÁ÷ ¹Ù´ÚÀÌ ÁØºñ ¾È µÆÀ¸¸é ´ÙÀ½ Æ½¿¡ ´Ù½Ã ½Ãµµ
+		// ì•„ì§ ë°”ë‹¥ì´ ì¤€ë¹„ ì•ˆ ëìœ¼ë©´ ë‹¤ìŒ í‹±ì— ë‹¤ì‹œ ì‹œë„
+		UE_LOG(LogTemp, Warning, TEXT("TrySpawning."));
 		return;
 	}
 
-	// ¹Ù´ÚÀ» Ã£¾ÒÀ» ¶§¸¸ ½ÇÁ¦ ½ºÆù
+	// ë°”ë‹¥ì„ ì°¾ì•˜ì„ ë•Œë§Œ ì‹¤ì œ ìŠ¤í°
 	RestartPlayer(PendingPlayerController);
+	UE_LOG(LogTemp, Warning, TEXT("[dddd]RestartPlayer"));
 
-	// ½ºÆù ¼º°ø ¿©ºÎ È®ÀÎ
+	// ìŠ¤í° ì„±ê³µ ì—¬ë¶€ í™•ì¸
 	if (PendingPlayerController->GetPawn())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("SuccessPawn"));
 		GetWorldTimerManager().ClearTimer(SpawnRetryTimerHandle);
 	}
 }
@@ -139,11 +150,11 @@ APawn* ARogueStartGameMode::SpawnDefaultPawnAtTransform_Implementation(
 		return Super::SpawnDefaultPawnAtTransform_Implementation(NewPlayer, SpawnTransform);
 	}
 
-	// ¿©±â¼­µµ ÇÑ ¹ø ´õ ÃÖÁ¾ º¸Á¤
+	// ì—¬ê¸°ì„œë„ í•œ ë²ˆ ë” ìµœì¢… ë³´ì •
 	FTransform FinalTransform;
 	if (!FindGroundedSpawnTransform(FinalTransform))
 	{
-		// ¹Ù´Ú ¸ø Ã£À¸¸é ¾Æ¿¹ ½ºÆùÇÏÁö ¾ÊÀ½
+		// ë°”ë‹¥ ëª» ì°¾ìœ¼ë©´ ì•„ì˜ˆ ìŠ¤í°í•˜ì§€ ì•ŠìŒ
 		return nullptr;
 	}
 
