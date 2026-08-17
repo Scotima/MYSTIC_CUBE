@@ -32,6 +32,10 @@ public:
 	virtual void InputSkillQ();
 	virtual void InputSkillE();
 	virtual void InputSkillShift();
+	virtual void InputSkillLeftMouse();
+
+	FORCEINLINE void SetUsingSkill(bool a) { bUsingSkill = a; }
+	FORCEINLINE bool GetUsingSkill() { return bUsingSkill; }
 
 protected:
 	UPROPERTY(Transient)
@@ -72,5 +76,9 @@ protected:
 	FName CameraOcclusionOpacityParameter = TEXT("Opacity");
 
 	TMap<class UMeshComponent*, TArray<TObjectPtr<UMaterialInterface>>> FadedOccluderMaterials;
+
+
+protected:
+	bool bUsingSkill = false;
 
 };

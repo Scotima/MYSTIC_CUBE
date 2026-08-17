@@ -4,13 +4,18 @@
 #include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
 #include "DemonKing/Item/CItemBase.h"
 #include "Engine/World.h"
+#include "Net/UnrealNetwork.h"
 UCEnemyStatComponent::UCEnemyStatComponent()
 {
 
 	PrimaryComponentTick.bCanEverTick = true;
-	//MaxHp = 100.0f;
+	SetIsReplicatedByDefault(true);
+
+
+	MaxHp = 100.0f;
 	Defense = 100.0f;
 	CurrentHp = MaxHp;
+
 
 	
 }
@@ -34,8 +39,23 @@ void UCEnemyStatComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	
 }
 
+void UCEnemyStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UCEnemyStatComponent, CurrentHp);
+}
+
 void UCEnemyStatComponent::AttackPlayer(AActor* HitActor)
 {
+
+	if (!GetOwner()->HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCEnemyStatComponent]"
+			"::AttackPlayer !GetOwner->HasAuthority"));
+		return;
+	}
+
 	UCCharacterStatComponent* Player = HitActor->FindComponentByClass<UCCharacterStatComponent>();
 
 	if (!Player)
@@ -64,6 +84,7 @@ void UCEnemyStatComponent::TakeDamage(float PlayerPower,float DefensePenetration
 	const float FinalDamage = FMath::Max(1.0f, PlayerPower * DamageRate);
 
 	CurrentHp = FMath::Clamp(CurrentHp - FinalDamage, 0.0f, MaxHp);
+	OnEmenyHpChanged.Broadcast(GetHealthPercent());
 	
 	
 	if (CurrentHp <= 0.0f)
@@ -142,7 +163,7 @@ void UCEnemyStatComponent::DoTrace(const FBoxTraceData& BoxTraceData)
 
 			AlreadyHitActors.Add(HitActor);
 
-			AttackPlayer(HitActor);
+			ServerAttackPlayer(HitActor);
 			
 		}
 	}
@@ -158,9 +179,21 @@ void UCEnemyStatComponent::Die()
 		return;
 	}
 
+
+	OnEnemyDied.Broadcast();
 	Owner->Destroy();
 	DropItem();
 	
+}
+
+void UCEnemyStatComponent::ServerAttackPlayer_Implementation(AActor* HitActor)
+{
+	AttackPlayer(HitActor);
+}
+
+void UCEnemyStatComponent::OnRep_Current()
+{
+	OnEmenyHpChanged.Broadcast(GetHealthPercent());
 }
 
 void UCEnemyStatComponent::DropItem()

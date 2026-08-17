@@ -25,8 +25,15 @@ void ARoguePlayerState::OnRep_PlayerNickName()
 	OnLobbyNickNameChanged.Broadcast(PlayerNickName);
 }
 
+void ARoguePlayerState::OnRep_PlayerHP()
+{
+	OnPlayerHpChanged.Broadcast(CurrentHpPercent);
+}
+
 void ARoguePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ARoguePlayerState, PlayerNickName);
+
+	DOREPLIFETIME(ARoguePlayerState, CurrentHpPercent);
 }

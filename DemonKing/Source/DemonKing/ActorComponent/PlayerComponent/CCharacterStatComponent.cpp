@@ -1,4 +1,5 @@
 #include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
+#include "DemonKing/GameFlow/RoguePlayerState.h"
 
 
 UCCharacterStatComponent::UCCharacterStatComponent()
@@ -10,10 +11,29 @@ UCCharacterStatComponent::UCCharacterStatComponent()
 }
 
 
+
+
 // Called when the game starts
 void UCCharacterStatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+
+	if (!OwnerPawn)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: TakeDamage !OwnerPawn"));
+		return;
+	}
+	ARoguePlayerState* PS = Cast<ARoguePlayerState>(OwnerPawn->GetPlayerState());
+
+	if (!PS)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: TakeDamage !Ps"));
+		return;
+	}
+
+	PS->SetPlayerState_HP(GetHP_Percent());
 
 	
 }
@@ -36,6 +56,22 @@ void UCCharacterStatComponent::TakeDamage(float MonsterPower)
 
 	CurrentHp -= MonsterPower; // this is not finalized yet. This is temporary
 
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+
+	if (!OwnerPawn)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: TakeDamage !OwnerPawn"));
+		return;
+	}
+	ARoguePlayerState* PS = Cast<ARoguePlayerState>(OwnerPawn->GetPlayerState());
+
+	if (!PS)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: TakeDamage !Ps"));
+		return;
+	}
+
+	PS->SetPlayerState_HP(GetHP_Percent());
 
 	if (CurrentHp <= 0.0f)
 	{

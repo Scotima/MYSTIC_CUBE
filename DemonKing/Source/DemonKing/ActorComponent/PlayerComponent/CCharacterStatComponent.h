@@ -8,6 +8,7 @@
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+
 class DEMONKING_API UCCharacterStatComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -15,7 +16,6 @@ class DEMONKING_API UCCharacterStatComponent : public UActorComponent
 public:	
 	
 	UCCharacterStatComponent();
-
 protected:
 	virtual void BeginPlay() override;
 
@@ -25,6 +25,8 @@ public:
 
 	void TakeDamage(float MonsterPower);
 	void Die();
+
+	FORCEINLINE float GetHP_Percent() { return CurrentHp >= 0 ? CurrentHp / MaxHp : 0; }
 
 	//블루프린트에서도 할 수 있게..
 	//공식은 같지만 마법사 체력이 낮고

@@ -11,7 +11,15 @@ ARogueCharacterBase::ARogueCharacterBase()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	OcclusionSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	OcclusionSpringArm->SetupAttachment(RootComponent);
 
+	OcclusionSpringArm->TargetArmLength = 600.f;
+	OcclusionSpringArm->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
+	OcclusionSpringArm->bUsePawnControlRotation = false;
+
+	OcclusionCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	OcclusionCamera->SetupAttachment(OcclusionSpringArm, USpringArmComponent::SocketName);
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
@@ -241,6 +249,11 @@ void ARogueCharacterBase::InputSkillE()
 void ARogueCharacterBase::InputSkillShift()
 {
 	//자식에서 재정의
+}
+
+void ARogueCharacterBase::InputSkillLeftMouse()
+{
+	//자식에서 재정의.
 }
 
 

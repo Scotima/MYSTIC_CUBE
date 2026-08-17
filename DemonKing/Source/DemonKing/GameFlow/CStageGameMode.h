@@ -2,7 +2,7 @@
 
 
 #include "CoreMinimal.h"
-#include "DemonKing/GameFlow/RogueGameModeBase.h"
+#include "DemonKing/RogueStartGameMode.h"
 #include "Containers/Queue.h"
 #include "CStageGameMode.generated.h"
 
@@ -17,9 +17,18 @@ struct  FMonster_Imformation
 
 };
 
+UENUM(BlueprintType)
+
+enum class EndStage : uint8
+{
+	None,
+	Playing,
+	Cleared
+};
+
 
 UCLASS()
-class DEMONKING_API ACStageGameMode : public ARogueGameModeBase
+class DEMONKING_API ACStageGameMode : public ARogueStartGameMode
 {
 	GENERATED_BODY()
 	
@@ -32,8 +41,26 @@ public:
 
 	void InputStageInformation();
 
+	bool All_Expected_Player_Spawned();
+
+	bool TrySpawnSingleMonster(const FVector& PreparedSpawnLocation, const FMonster_Imformation& MonsterInfo);
+
+	bool IsMonsterSpawnLocationClear(const FVector& NavFloorLocation, FVector& OutSpawnLocation) const;
+
+
+	UFUNCTION(BlueprintCallable)
+	void StartGameOverlap();
+
+
+	void HandleEnemyDied();
+
+	void SpawnDelayTimer(float time);
+
 protected:
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
+	virtual void StartPlay() override;
+
+	virtual void OnSpawnQueueDrained() override;
 	
 
 
@@ -50,6 +77,18 @@ private:
 
 	TArray<FVector> MonsterSpawnLocations;
 	TQueue<FMonster_Imformation> MonsterQueue;
+
+	int32 ExpectedPlayerNum = 0;
+
+	bool bIsReadySpawnMonster = false;
+
+	bool bEncounterStarted = false;
+
+	int32 MonsterAliveCount = 0;
+
+	EndStage StageState = EndStage::None;
+
+	FTimerHandle SpawnDelay;
 	
 
 	
