@@ -38,7 +38,7 @@ public:
 	virtual void InputSkillE();
 	virtual void InputSkillShift();
 	virtual void InputSkillLeftMouse();
-
+	virtual void InputSkillLeftMouseReleased();
 	FORCEINLINE void SetUsingSkill(bool a) { bUsingSkill = a; }
 	FORCEINLINE bool GetUsingSkill() { return bUsingSkill; }
 
@@ -51,6 +51,7 @@ protected:
 
 protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 
 	void UpdateCameraOcclusionFade();
 	void FadeOccludingMesh(class UMeshComponent* MeshComponent);
@@ -82,8 +83,6 @@ protected:
 
 	TMap<class UMeshComponent*, TArray<TObjectPtr<UMaterialInterface>>> FadedOccluderMaterials;
 
-
 protected:
 	bool bUsingSkill = false;
-
 };

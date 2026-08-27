@@ -113,7 +113,24 @@ void UCKnightSkillComponent::DoTrace(const FBoxTraceData& BoxTraceData)
 				continue;
 			}
 
-			Enemy->TakeDamage(50, 100, 100); //Temponary
+			UCCharacterStatComponent* Stat = Owner->FindComponentByClass<UCCharacterStatComponent>();
+			if (!Stat)
+			{
+				continue;
+			}
+
+			float Damage = 0.0f;
+			if (bCurrentSkillIsBasicAttack)
+			{
+				bool bIsCrit = false;
+				Damage = Stat->CalculateBasicAttackDamage(bIsCrit);
+			}
+			else
+			{
+				Damage = Stat->CalculateSkillDamage(CurrentSkillDamageCoefficient);
+			}
+
+			Enemy->TakeDamage(Damage);
 		}
 	}
 
@@ -126,7 +143,7 @@ void UCKnightSkillComponent::UseSkill(int SkillID, int32 ComboIndex)
 {
 	
 
-	if ((BeforeSKillId / 1000 % 10)  != (SkillID / 1000 % 10)) // 스킬의 앞자리만 비교해서 같은 스킬인지 아닌지 비교
+	if ((BeforeSKillId / 1000 % 10)  != (SkillID / 1000 % 10))
 	{
 		BeforeSKillId = SkillID;
 		bUseSkill = true;
@@ -145,7 +162,14 @@ void UCKnightSkillComponent::UseSkill(int SkillID, int32 ComboIndex)
 
 	UAnimMontage* animMontage = SkillData->Montage;
 	float coolTime = SkillData->CoolDown;
-	float SkillDamage = SkillData->Damage;
+	CurrentSkillDamageCoefficient = SkillData->Damage;
+	bCurrentSkillIsBasicAttack = (SkillID / 1000) == 1;
+
+	UCCharacterStatComponent* Stat = GetOwner() ? GetOwner()->FindComponentByClass<UCCharacterStatComponent>() : nullptr;
+	if (Stat)
+	{
+		coolTime = bCurrentSkillIsBasicAttack ? Stat->GetAttackInterval() : Stat->GetFinalCooldown(coolTime);
+	}
 
 	
 	
@@ -167,10 +191,10 @@ void UCKnightSkillComponent::UseSkill(int SkillID, int32 ComboIndex)
 			if (bCanInput == true)
 			{
 				bCanInput = false;
-				OwnerCharacter->GetController()->SetIgnoreMoveInput(true); // 캐릭터가 다음 애니메이션 재생이 안될 시 문제가 생겨 여기로 옮김.
+				OwnerCharacter->GetController()->SetIgnoreMoveInput(true);
 			}
 			UE_LOG(LogTemp, Warning, TEXT("[UCKnightSkillComponent::UseSkill] UseSKill"));
-			OwnerCharacter->PlaySkillMotion(animMontage); //즉시 애니메이션이 재생되는 문제.
+			OwnerCharacter->PlaySkillMotion(animMontage);
 			float WorldTime =GetWorld()->GetTimeSeconds();
  			float EndSkillTime = WorldTime + coolTime;
 			SkillCoolTimeMap.Add(SkillID, EndSkillTime); 

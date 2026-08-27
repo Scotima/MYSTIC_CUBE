@@ -28,6 +28,8 @@ protected:
 	virtual void InputSkillQ() override;
 	virtual void InputSkillE() override;
 	virtual void InputSkillShift() override;
+	virtual void InputSkillLeftMouse() override;
+	virtual void InputSkillLeftMouseReleased() override;
 
 	bool CanUseSkill(ESkillSlot SkillSlot) const;
 	void CommitSkill(ESkillSlot SkillSlot);
@@ -44,6 +46,15 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Skill")
 	void BP_UseSkillShift();
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Skill")
+	void BP_UseLeftMouseSkill();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Skill")
+	void BP_LeftMousePressed();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Skill")
+	void BP_LeftMouseReleased();
+
 	// BP에서 애니메이션 노티파이 시점에 호출하기 좋게 public으로 둠
 	UFUNCTION(BlueprintCallable, Category = "Skill")
 	void PerformSkillQHitCheck();
@@ -55,6 +66,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Skill")
 	void EndShieldSkill();
+
+	UFUNCTION(BlueprintCallable, Category = "Skill|Targeting")
+	bool CacheMouseSkillTarget(ESkillSlot SkillSlot, float MaxCastRange);
+
+	UFUNCTION(BlueprintPure, Category = "Skill|Targeting")
+	FVector GetCachedSkillTargetLocation(ESkillSlot SkillSlot) const;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Cooldown")
@@ -111,6 +128,33 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Shift")
 	float ShieldDuration = 3.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Q")
+	bool bSkillQUsesMouseTarget = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Q")
+	float SkillQCastRange = 800.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|E")
+	bool bSkillEUsesMouseTarget = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|E")
+	float SkillECastRange = 800.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Shift")
+	bool bSkillShiftUsesMouseTarget = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Shift")
+	float SkillShiftCastRange = 800.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Skill|Targeting")
+	FVector CachedSkillQTargetLocation = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Skill|Targeting")
+	FVector CachedSkillETargetLocation = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Skill|Targeting")
+	FVector CachedSkillShiftTargetLocation = FVector::ZeroVector;
 
 	FTimerHandle ShieldTimerHandle;
 

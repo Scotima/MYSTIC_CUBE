@@ -53,6 +53,9 @@ protected:
 private:
 	TMap<int, float> SkillCoolTimeMap;
 
+	float CurrentSkillDamageCoefficient = 1.0f;
+	bool bCurrentSkillIsBasicAttack = false;
+
 
 
 private:

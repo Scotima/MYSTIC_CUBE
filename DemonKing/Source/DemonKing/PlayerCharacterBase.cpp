@@ -4,6 +4,7 @@
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/Controller.h"
+#include "GameFramework/PlayerController.h"
 
 APlayerCharacterBase::APlayerCharacterBase()
 {
@@ -118,18 +119,25 @@ void APlayerCharacterBase::InputSkillQ()
 		return;
 	}
 
+	if (bSkillQUsesMouseTarget && !CacheMouseSkillTarget(ESkillSlot::Q, SkillQCastRange))
+	{
+		return;
+	}
+
 	bIsCastingSkill = true;
-
 	CommitSkill(ESkillSlot::Q);
-
 	BP_UseSkillQ();
-
-	bIsCastingSkill = false; // 추가
+	bIsCastingSkill = false;
 }
 
 void APlayerCharacterBase::InputSkillE()
 {
 	if (!CanUseSkill(ESkillSlot::E))
+	{
+		return;
+	}
+
+	if (bSkillEUsesMouseTarget && !CacheMouseSkillTarget(ESkillSlot::E, SkillECastRange))
 	{
 		return;
 	}
@@ -150,6 +158,11 @@ void APlayerCharacterBase::InputSkillShift()
 		return;
 	}
 
+	if (bSkillShiftUsesMouseTarget && !CacheMouseSkillTarget(ESkillSlot::Shift, SkillShiftCastRange))
+	{
+		return;
+	}
+
 	bIsCastingSkill = true;
 
 	CommitSkill(ESkillSlot::Shift);
@@ -157,6 +170,16 @@ void APlayerCharacterBase::InputSkillShift()
 	BP_UseSkillShift();
 
 	bIsCastingSkill = false; // 추가
+}
+
+
+void APlayerCharacterBase::InputSkillLeftMouse()
+{
+	BP_LeftMousePressed();
+}
+void APlayerCharacterBase::InputSkillLeftMouseReleased()
+{
+	BP_LeftMouseReleased();
 }
 
 void APlayerCharacterBase::PerformSkillQHitCheck()
@@ -294,4 +317,61 @@ void APlayerCharacterBase::EndShieldSkill()
 	CurrentShieldAmount = 0.0f;
 
 	UE_LOG(LogTemp, Warning, TEXT("Shield Ended"));
+}
+
+bool APlayerCharacterBase::CacheMouseSkillTarget(ESkillSlot SkillSlot, float MaxCastRange)
+{
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC)
+	{
+		return false;
+	}
+
+	FHitResult Hit;
+	if (!PC->GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+	{
+		return false;
+	}
+
+	const FVector TargetLocation = Hit.Location;
+	const float Distance = FVector::Dist2D(GetActorLocation(), TargetLocation);
+
+	if (Distance > MaxCastRange)
+	{
+		return false;
+	}
+
+	switch (SkillSlot)
+	{
+	case ESkillSlot::Q:
+		CachedSkillQTargetLocation = TargetLocation;
+		break;
+
+	case ESkillSlot::E:
+		CachedSkillETargetLocation = TargetLocation;
+		break;
+
+	case ESkillSlot::Shift:
+		CachedSkillShiftTargetLocation = TargetLocation;
+		break;
+	}
+
+	return true;
+}
+
+FVector APlayerCharacterBase::GetCachedSkillTargetLocation(ESkillSlot SkillSlot) const
+{
+	switch (SkillSlot)
+	{
+	case ESkillSlot::Q:
+		return CachedSkillQTargetLocation;
+
+	case ESkillSlot::E:
+		return CachedSkillETargetLocation;
+
+	case ESkillSlot::Shift:
+		return CachedSkillShiftTargetLocation;
+	}
+
+	return GetActorLocation();
 }

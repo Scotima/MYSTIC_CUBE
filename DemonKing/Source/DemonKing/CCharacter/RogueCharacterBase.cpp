@@ -9,6 +9,7 @@
 #include "DemonKing/CWidget/CPlayerHPWidgetComponent.h"
 #include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
 
+
 ARogueCharacterBase::ARogueCharacterBase()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -325,3 +326,6 @@ void ARogueCharacterBase::InputSkillLeftMouse()
 }
 
 
+void ARogueCharacterBase::InputSkillLeftMouseReleased()
+{
+}
