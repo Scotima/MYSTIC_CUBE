@@ -186,6 +186,7 @@ void ARoguePlayerController::OnMouseLeftReleased()
 	}
 
 	characterBase->SetUsingSkill(false);
+	characterBase->InputSkillLeftMouseReleased();
 }
 void ARoguePlayerController::OnQPressed()
 {

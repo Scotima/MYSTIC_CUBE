@@ -23,6 +23,7 @@ protected:
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	virtual APawn* SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform) override;
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
+	virtual void BeginPlay() override;
 
 	UFUNCTION()
 	void TrySpawnPendingPlayer();

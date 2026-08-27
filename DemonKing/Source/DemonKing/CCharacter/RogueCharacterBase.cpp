@@ -6,6 +6,7 @@
 #include "Engine/World.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
+
 ARogueCharacterBase::ARogueCharacterBase()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -243,4 +244,11 @@ void ARogueCharacterBase::InputSkillShift()
 	//자식에서 재정의
 }
 
+void ARogueCharacterBase::InputSkillLeftMouse()
+{
+	//자식에서 재정의.
+}
 
+void ARogueCharacterBase::InputSkillLeftMouseReleased()
+{
+}

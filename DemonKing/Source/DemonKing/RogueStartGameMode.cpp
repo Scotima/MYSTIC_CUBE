@@ -16,6 +16,17 @@ ARogueStartGameMode::ARogueStartGameMode()
 
 void ARogueStartGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
+	
+}
+
+void ARogueStartGameMode::BeginPlay()
+{
+
+}
+
+
+void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
+{
 	UE_LOG(LogTemp, Warning, TEXT("[ARogueStartGameMode::HandleStartingNewPlayer_Implementation]"));
 
 
@@ -37,12 +48,6 @@ void ARogueStartGameMode::HandleStartingNewPlayer_Implementation(APlayerControll
 			true
 		);
 	}
-}
-
-
-void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
-{
-	
 }
 
 void ARogueStartGameMode::TrySpawnPendingPlayer()
