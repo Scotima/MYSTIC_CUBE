@@ -36,6 +36,11 @@ void UMyGameInstance::RequestSaveAndLeaveToLobby()
 	UGameplayStatics::OpenLevel(GetWorld(), TEXT("/Game/Maps/L_MainMenu"));
 }
 
+void UMyGameInstance::SetExpectedStagePlayerCount(int32 PlayerNum)
+{
+	ExpectedPlayerCount = PlayerNum;
+}
+
 URogueSaveSubsystem* UMyGameInstance::GetSaveSS()
 {
 	return GetSubsystem<URogueSaveSubsystem>();

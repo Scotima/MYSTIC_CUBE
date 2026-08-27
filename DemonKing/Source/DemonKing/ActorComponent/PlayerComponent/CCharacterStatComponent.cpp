@@ -1,19 +1,40 @@
 #include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
+#include "DemonKing/GameFlow/RoguePlayerState.h"
 
 
 UCCharacterStatComponent::UCCharacterStatComponent()
 {
 	
 	PrimaryComponentTick.bCanEverTick = true;
-
-	MaxHp = CurrentHp;
+	
+	MaxHp = 500.0f;
+	CurrentHp = MaxHp;
 }
+
+
 
 
 // Called when the game starts
 void UCCharacterStatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+
+	if (!OwnerPawn)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: BeginPlay()!OwnerPawn"));
+		return;
+	}
+	ARoguePlayerState* PS = Cast<ARoguePlayerState>(OwnerPawn->GetPlayerState());
+
+	if (!PS)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: BeginPlay() !Ps"));
+		return;
+	}
+
+	PS->SetPlayerState_HP(GetHP_Percent());
 
 	
 }
@@ -29,6 +50,8 @@ void UCCharacterStatComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 void UCCharacterStatComponent::TakeDamage(float MonsterPower)
 {
+
+	UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: TakeDamage"));
 	if (CurrentHp <= 0)
 	{
 		return;
@@ -36,6 +59,22 @@ void UCCharacterStatComponent::TakeDamage(float MonsterPower)
 
 	CurrentHp -= MonsterPower; // this is not finalized yet. This is temporary
 
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+
+	if (!OwnerPawn)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: TakeDamage !OwnerPawn"));
+		return;
+	}
+	ARoguePlayerState* PS = Cast<ARoguePlayerState>(OwnerPawn->GetPlayerState());
+
+	if (!PS)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: TakeDamage !Ps"));
+		return;
+	}
+
+	PS->SetPlayerState_HP(GetHP_Percent());
 
 	if (CurrentHp <= 0.0f)
 	{
@@ -48,5 +87,14 @@ void UCCharacterStatComponent::TakeDamage(float MonsterPower)
 void UCCharacterStatComponent::Die()
 {
 	//Call function PlayerCharacter->PlayMontage[Death Animation]
+
+	AActor* Actor = GetOwner();
+
+	if (!IsValid(Actor))
+	{
+		return;
+	}
+
+	Actor->Destroy();
 }
 

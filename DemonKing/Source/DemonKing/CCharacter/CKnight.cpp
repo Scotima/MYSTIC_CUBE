@@ -8,6 +8,7 @@
 #include "DemonKing/SkillComponent/CKnightSkillComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
+#include "DemonKing/GameFlow/RoguePlayerState.h"
 
 ACKnight::ACKnight()
 {
@@ -191,10 +192,30 @@ float ACKnight::PlaySkillMotion(UAnimMontage* animmontage, float PlayRate)
 
 }
 
+void ACKnight::Refresh_HP()
+{
+	UCCharacterStatComponent* StatComponent = FindComponentByClass<UCCharacterStatComponent>();
+
+	if (!IsValid(StatComponent))
+	{
+		return;
+	}
+
+	ARoguePlayerState* RoguePS = GetPlayerState<ARoguePlayerState>();
+
+	if (!IsValid(RoguePS))
+	{
+		return;
+	}
+
+	RoguePS->SetPlayerState_HP(StatComponent->GetHP_Percent());
+	
+}
+
 void ACKnight::SkillDeshe()
 {
 	// 코드 출처 https://s-pace.tistory.com/36
-	float DesheDistance = 3000.0f;
+	float DesheDistance = 1600.0f;
 
 	FVector DeshePower = GetActorForwardVector() * DesheDistance;
 

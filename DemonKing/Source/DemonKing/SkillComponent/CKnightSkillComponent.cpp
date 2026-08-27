@@ -113,7 +113,7 @@ void UCKnightSkillComponent::DoTrace(const FBoxTraceData& BoxTraceData)
 				continue;
 			}
 
-			Enemy->TakeDamage(100, 100, 100); //Temponary
+			Enemy->TakeDamage(50, 100, 100); //Temponary
 		}
 	}
 

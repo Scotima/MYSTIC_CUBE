@@ -4,8 +4,11 @@
 #include "GameFramework/Pawn.h"
 #include "DemonKing/ActorComponent/EnemyComponent/CEnemyStatComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "DemonKing/GameFlow/MyGameInstance.h"
+#include "Components/CapsuleComponent.h"
+#include "CollisionShape.h"
 
-void ACStageGameMode::GetPlayerInform() // ÇÃ·¹ÀÌ¾î À§Ä¡ Á¤º¸ ¾ò¾î¿À±â.
+void ACStageGameMode::GetPlayerInform() // ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
 {
 	UWorld* World = GetWorld();
 
@@ -27,56 +30,157 @@ void ACStageGameMode::GetPlayerInform() // ÇÃ·¹ÀÌ¾î À§Ä¡ Á¤º¸ ¾ò¾î¿À±â.
 
 		if (!IsValid(Player))
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] GetPlayerInform() !IsValid(Player)"));
 			continue;
 		}
 
-		PlayerPawns.Add(Player); // ÇÃ·¹ÀÌ¾îµéÀ» ÀúÀå.
+		PlayerPawns.Add(Player); // ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 	}
 
 }
 
 void ACStageGameMode::PrepareForSpawnMonster()
 {
-	MonsterSpawnLocations.Reset();
+	RandomMonsterInform.Reset();
 	
 
 	UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld());
 
 	if (!NavSystem)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] PrepareForSpawnMonster() !NavSystem"));
 		return;
 	}
 
 	if (PlayerPawns.IsEmpty())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode]  PrepareForSpawnMonster() PlayerPawns.IsEmpty()"));
 		return;
 	}
 	
-	for (const auto Player : PlayerPawns)
+	if (MonsterArray.IsEmpty())
+	{
+		return;
+	}
+
+	for (const auto& Player : PlayerPawns)
 	{
 		APawn* PlayerPawn = Player.Get();
 
 		if (!IsValid(PlayerPawn))
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode]  PrepareForSpawnMonster() !IsValid(PlayerPawn)"));
 			continue;
 		}
 
 		const FVector PlayerLocation = PlayerPawn->GetActorLocation();
+		const FVector ProjectionExtent(500.0f, 500.0f, 1500.0f);
 
-		for (int32 index = 0; index < MonsterCount; index++)
+		FNavLocation ProjectedPlayerLocation;
+
+
+		if (!NavSystem->ProjectPointToNavigation(PlayerLocation,
+			ProjectedPlayerLocation, ProjectionExtent))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed Finding NavMesh Where Player Under. Player = %s"),
+				*PlayerLocation.ToString());
+			continue;
+		}
+
+		FMonster_Imformation MonsterInfo;
+		if (!MonsterQueue.Peek(MonsterInfo))
+		{
+			UE_LOG(LogTemp, Warning,
+				TEXT("[ACStageGameMode] ::PrepareForSpawnMonster "
+					"MonsterQueue is empty"));
+
+			return;
+		}
+
+		int32 Monster_Count = MonsterInfo.MonsterCount;
+
+		if (Monster_Count <= 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] :: PrepareForSpawnMonster"
+				" Monster Count Under Zero"));
+			return;
+		}
+
+		for (int32 index = 0; index < Monster_Count; index++)
 		{
 			FNavLocation NavSpawnLocation;
 
-			const bool bFoundLocation =
-				NavSystem->GetRandomReachablePointInRadius(
-					PlayerLocation, 1500.0f, NavSpawnLocation);
+			
+			int32 MaxAttempt = 10;
+			bool bPreparedLocation = false;
 
-
-			if (bFoundLocation)
+			for (int32 Attempt = 0; Attempt < MaxAttempt; Attempt++)
 			{
-				MonsterSpawnLocations.Add(NavSpawnLocation);
+				const bool bFoundLocation =
+					NavSystem->GetRandomReachablePointInRadius(
+						ProjectedPlayerLocation.Location, 1500.0f, NavSpawnLocation);
+
+
+				if (!bFoundLocation)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode]::PrepareForSpawnMonster !bFoundLocation"));
+					continue;
+				}
+
+				const int32 Monster_ArraySize = MonsterArray.Num();
+				const int32 RandomIndex = FMath::RandRange(0, Monster_ArraySize -1);
+
+				TSubclassOf<APawn> SelectedMonsterClass = nullptr;
+
+				for (int32 offset = 0; offset < Monster_ArraySize; offset++)
+				{
+					int32 MonsterIndex = (RandomIndex + offset) % Monster_ArraySize;
+
+					if (MonsterArray[MonsterIndex])
+					{
+						SelectedMonsterClass = MonsterArray[MonsterIndex];
+						break;
+					}
+				}
+
+				if (!SelectedMonsterClass)
+				{
+					continue;
+				}
+
+
+
+				FVector ClearSpawnLocation;
+
+				if (!IsMonsterSpawnLocationClear(NavSpawnLocation.Location, ClearSpawnLocation, SelectedMonsterClass))
+
+				{
+					UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] !IsMonsterSpawnLocationClaear"));
+					continue;
+				}
+
+				
+				//MonsterSpawnLocations.Add(ClearSpawnLocation);
+				//RandomMonsterInform.Add(SelectedMonsterClass);
+				FMonster_Class_LocationInform Monster_Class_LocationInform;
+				Monster_Class_LocationInform.MonsterCharacterArray = SelectedMonsterClass;
+				Monster_Class_LocationInform.MonsterLocationArray = ClearSpawnLocation;
+				RandomMonsterInform.Add(Monster_Class_LocationInform);
+				MonsterAliveCount++;
+				bPreparedLocation = true;
+				break;
 			}
+
+			if (!bPreparedLocation)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode]::PrepareForSpawnMonster !bPreparedLocation"));
+			}
+			
+
+			
 		}
+
+
 
 
 	}
@@ -85,12 +189,13 @@ void ACStageGameMode::PrepareForSpawnMonster()
 
 void ACStageGameMode::SpawnMonster()
 {
-	if (!MonsterClass || !HasAuthority())
+
+	if (!HasAuthority())
 	{
 		return;
 	}
 
-	if (MonsterSpawnLocations.IsEmpty())
+	if (RandomMonsterInform.IsEmpty())
 	{
 		return;
 	}
@@ -108,33 +213,25 @@ void ACStageGameMode::SpawnMonster()
 		return;
 	}
 
-	bool bSpawnedMonster = false;
-
-	for (const auto MonsterLocation : MonsterSpawnLocations)
+	UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] SpawnMonster() ddddddd"));
+	for (const auto& PrepareMonster : RandomMonsterInform)
 	{
-		const FTransform SpawnTransform(FRotator::ZeroRotator, MonsterLocation);
-
-		APawn* SpawnedMonster = world->SpawnActorDeferred<APawn>(MonsterClass,
-			SpawnTransform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding);
-
-		if (!IsValid(SpawnedMonster))
-		{
-			continue;
-		}
-		UCEnemyStatComponent* StatComponent =
-			SpawnedMonster->FindComponentByClass<UCEnemyStatComponent>();
-
-		if (!IsValid(StatComponent))
-		{
-			SpawnedMonster->Destroy();
-			continue;
-		}
 		
-		StatComponent->SetMaxHp(MonsterInfo.Health);
-		StatComponent->SetAttackPower(MonsterInfo.Damage);
+		const bool bSpawnedMonster = TrySpawnSingleMonster(PrepareMonster.MonsterLocationArray, MonsterInfo,
+		PrepareMonster.MonsterCharacterArray);
 
-		UGameplayStatics::FinishSpawningActor(SpawnedMonster, SpawnTransform);
+		if (!bSpawnedMonster)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] SpawnMonster !bSpawnedMonster"));
+			continue;
+		}
+
+		
+		
+		
 	}
+
+	
 
 
 }
@@ -147,9 +244,247 @@ void ACStageGameMode::InputStageInformation()
 	FMonster_Imformation MonsterInfo;
 	MonsterInfo.Damage = 100;
 	MonsterInfo.Health = 100;
-	MonsterInfo.MonsterCount = 50;
+	MonsterInfo.MonsterCount = 3;
 
 	MonsterQueue.Enqueue(MonsterInfo); // Stage 1
+
+
+	MonsterInfo.Damage = 100;
+	MonsterInfo.Health = 100;
+	MonsterInfo.MonsterCount = 5;
+
+	MonsterQueue.Enqueue(MonsterInfo);
+
+
+
+	MonsterInfo.Damage = 100;
+	MonsterInfo.Health = 100;
+	MonsterInfo.MonsterCount = 10;
+
+	MonsterQueue.Enqueue(MonsterInfo);
+
+
+}
+
+bool ACStageGameMode::All_Expected_Player_Spawned()
+{
+	if (ExpectedPlayerNum <= 0)
+	{
+		return false;
+	}
+
+	if (!PendingPlayerController.IsEmpty())
+	{
+		return false;
+	}
+
+	const UWorld* world = GetWorld();
+
+	if (!world)
+	{
+		return false;
+	}
+
+	int32 SpawnedPlayerNum = 0;
+
+	for (FConstPlayerControllerIterator It = world->GetPlayerControllerIterator();
+		It; ++It)
+	{
+		APlayerController* pc = It->Get();
+
+		if (IsValid(pc) && IsValid(pc->GetPawn()))
+		{
+			++SpawnedPlayerNum;
+		}
+
+		else
+		{
+			continue;
+		}
+	}
+	return SpawnedPlayerNum >= ExpectedPlayerNum;
+
+
+
+}
+
+bool ACStageGameMode::TrySpawnSingleMonster(const FVector& PreparedSpawnLocation, const FMonster_Imformation& MonsterInfo, TSubclassOf<APawn> Monster)
+{
+	UWorld* world = GetWorld();
+
+	if (!world)
+	{
+		return false;
+	}
+
+	if (!HasAuthority())
+	{
+		return false;
+	}
+
+	if (!IsValid(Monster))
+	{
+		return false;
+	}
+
+	
+
+	MonsterInfo;
+
+	
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+	
+	APawn* SpawnedMonster = world->SpawnActor<APawn>(Monster, PreparedSpawnLocation, FRotator::ZeroRotator,
+		SpawnParams);
+
+	if (!IsValid(SpawnedMonster))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACStageMode]::TrySpawnSingleMonster : !IsValid(SpawnedMonster)"));
+		--MonsterAliveCount;
+		return false;
+	}
+
+	UE_LOG(LogTemp, Warning,
+		TEXT("[TrySpawnSingleMonster] Spawn success: %s, Location=%s"),
+		*GetNameSafe(SpawnedMonster),
+		*SpawnedMonster->GetActorLocation().ToString());
+
+	UCEnemyStatComponent* StatComponent = SpawnedMonster->FindComponentByClass<UCEnemyStatComponent>();
+	if (!IsValid(StatComponent))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACStageMode]::TrySpawnSingleMonster: !IsValid(StatComponent)"));
+		SpawnedMonster->Destroy();
+		--MonsterAliveCount;
+		return false;
+	}
+
+	StatComponent->SetMaxHp(MonsterInfo.Health);
+	StatComponent->SetAttackPower(MonsterInfo.Damage);
+
+	StatComponent->OnEnemyDied.AddUObject(this, &ACStageGameMode::HandleEnemyDied);
+
+
+	return true;
+
+}
+
+bool ACStageGameMode::IsMonsterSpawnLocationClear(const FVector& NavFloorLocation, FVector& OutSpawnLocation, TSubclassOf<APawn> Monster) const
+{
+	UWorld* world = GetWorld();
+
+	if (!world || !Monster)
+	{
+		return false;
+	}
+
+	const APawn* MonsterCDO = Monster->GetDefaultObject<APawn>();
+
+	if (!IsValid(MonsterCDO))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] IsMonsterSpawnLocationClear !IsValid MonsterCDO"));
+		return false;
+	}
+
+
+	const UCapsuleComponent* Capsule = MonsterCDO->FindComponentByClass<UCapsuleComponent>();
+
+	if (!IsValid(Capsule))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] IsMonsterSpawnLocationClear !IsValid Capsule"));
+		return false;
+	}
+
+
+	constexpr float Clearance = 10.0f;
+
+	const float TestRadius = Capsule->GetScaledCapsuleRadius() + Clearance;
+	const float TestHalfHeight = Capsule->GetScaledCapsuleHalfHeight() + Clearance;
+
+	OutSpawnLocation = NavFloorLocation + FVector::UpVector * TestHalfHeight;
+
+	const FCollisionShape TestShape = FCollisionShape::MakeCapsule(TestRadius, TestHalfHeight);
+
+	const bool bHasBlockOverlap = world->OverlapBlockingTestByProfile(OutSpawnLocation,
+		FQuat::Identity, Capsule->GetCollisionProfileName(), TestShape, FCollisionQueryParams::DefaultQueryParam);
+
+	return !bHasBlockOverlap;
+
+}
+
+void ACStageGameMode::StartGameOverlap()
+{
+
+	if (bEncounterStarted || !bIsReadySpawnMonster)
+	{
+		return;
+	}
+
+	bEncounterStarted = true;
+
+	PrepareForSpawnMonster();
+
+	if (RandomMonsterInform.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode::OnSpawnQueueDrained] MonsterSpawnLocations.IsEmpty()"));
+		bEncounterStarted = false;
+		return;
+	}
+
+
+	
+	
+	
+
+	SpawnDelayTimer(0.5f);
+
+	StageState = EndStage::Playing;
+	
+}
+
+void ACStageGameMode::HandleEnemyDied()
+{
+	MonsterAliveCount = FMath::Max(MonsterAliveCount - 1, 0);
+
+	if (MonsterAliveCount > 0)
+	{
+		return;
+	}
+
+	//Stage ì¢…ë£Œ
+	StageState = EndStage::Cleared;
+
+	if (StageState == EndStage::Cleared)
+	{
+		PrepareForSpawnMonster();
+
+		if (RandomMonsterInform.IsEmpty())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode::OnSpawnQueueDrained] MonsterSpawnLocations.IsEmpty()"));
+			bEncounterStarted = false;
+			return;
+		}
+
+		SpawnDelayTimer(0.5f);
+		StageState = EndStage::Playing;
+	}
+}
+
+void ACStageGameMode::SpawnDelayTimer(float time)
+{
+	if (!HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] :: SpawnDelayTimer !HasAuthority"));
+		return;
+	}
+
+	if (GetWorldTimerManager().IsTimerActive(SpawnDelay))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] :: SpawnDelayTimer !GetWorldTimerManager"));
+		return;
+	}
+
+	GetWorldTimerManager().SetTimer(SpawnDelay, this, &ACStageGameMode::SpawnMonster, FMath::Max(time, 0.0f), false);
 
 
 }
@@ -158,7 +493,57 @@ void ACStageGameMode::HandleStartingNewPlayer_Implementation(APlayerController* 
 {
 	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
 
+}
+
+void ACStageGameMode::StartPlay()
+{
+	Super::StartPlay();
+
+	UMyGameInstance* GI = Cast<UMyGameInstance>(GetGameInstance());
+
+	if (!GI)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] !GI"));
+		return;
+	}
+
+	ExpectedPlayerNum = GI->GetExpectedStagePlayerCount();
+
+	UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] Player Num = %d"), ExpectedPlayerNum);
+
+
+}
+
+void ACStageGameMode::OnSpawnQueueDrained()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] OnSpawnQueueDrained()"));
+
+	if (bIsReadySpawnMonster)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode]OnSpawnQueueDrained() bIsReadyMonster"));
+		return;
+	}
+
+	if (!All_Expected_Player_Spawned())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] OnSpawnQueueDrained() !All_Expected_Player_Spawned"));
+		return;
+	}
+	
+	if (MonsterArray.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACStageGameMode] OnSpawnQueueDrained() !MonsterClass"));
+		return;
+	}
+
+	PlayerPawns.Reset();
+
 	GetPlayerInform();
+
+	InputStageInformation();
+
+
+	bIsReadySpawnMonster = true;
 
 }
 

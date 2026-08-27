@@ -20,6 +20,11 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void OnRep_PlayerState() override;
+	virtual void PossessedBy(AController* NewController)override;
+
+	virtual void Refresh_HP();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -32,6 +37,10 @@ public:
 	virtual void InputSkillQ();
 	virtual void InputSkillE();
 	virtual void InputSkillShift();
+	virtual void InputSkillLeftMouse();
+
+	FORCEINLINE void SetUsingSkill(bool a) { bUsingSkill = a; }
+	FORCEINLINE bool GetUsingSkill() { return bUsingSkill; }
 
 protected:
 	UPROPERTY(Transient)
@@ -72,5 +81,9 @@ protected:
 	FName CameraOcclusionOpacityParameter = TEXT("Opacity");
 
 	TMap<class UMeshComponent*, TArray<TObjectPtr<UMaterialInterface>>> FadedOccluderMaterials;
+
+
+protected:
+	bool bUsingSkill = false;
 
 };
