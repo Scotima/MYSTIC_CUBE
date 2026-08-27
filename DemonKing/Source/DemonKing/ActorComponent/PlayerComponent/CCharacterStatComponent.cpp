@@ -1,10 +1,20 @@
 #include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
+#include "DemonKing/GameFlow/RoguePlayerState.h"
 
 UCCharacterStatComponent::UCCharacterStatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
+	
+	MaxHp = 500.0f;
+	CurrentHp = MaxHp;
+}
+
+
+
+
+// Called when the game starts
 void UCCharacterStatComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -17,6 +27,24 @@ void UCCharacterStatComponent::BeginPlay()
 	{
 		CurrentHp = MaxHp;
 	}
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+
+	if (!OwnerPawn)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: BeginPlay()!OwnerPawn"));
+		return;
+	}
+	ARoguePlayerState* PS = Cast<ARoguePlayerState>(OwnerPawn->GetPlayerState());
+
+	if (!PS)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: BeginPlay() !Ps"));
+		return;
+	}
+
+	PS->SetPlayerState_HP(GetHP_Percent());
+
+	
 }
 
 void UCCharacterStatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -65,6 +93,9 @@ float UCCharacterStatComponent::GetFinalAttackPower() const
 float UCCharacterStatComponent::GetFinalAttackSpeed() const
 {
 	if (BaseAttackSpeed <= 0.0f)
+
+	UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: TakeDamage"));
+	if (CurrentHp <= 0)
 	{
 		return 0.0f;
 	}
@@ -134,6 +165,22 @@ void UCCharacterStatComponent::TakeDamage(float IncomingDamage)
 
 	const float FinalDamage = FMath::Max(0.0f, IncomingDamage) * (1.0f - GetDamageReduction());
 	CurrentHp = FMath::Clamp(CurrentHp - FinalDamage, 0.0f, MaxHp);
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+
+	if (!OwnerPawn)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: TakeDamage !OwnerPawn"));
+		return;
+	}
+	ARoguePlayerState* PS = Cast<ARoguePlayerState>(OwnerPawn->GetPlayerState());
+
+	if (!PS)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: TakeDamage !Ps"));
+		return;
+	}
+
+	PS->SetPlayerState_HP(GetHP_Percent());
 
 	if (CurrentHp <= 0.0f)
 	{
@@ -168,6 +215,16 @@ void UCCharacterStatComponent::AddMaxHp(float Amount, bool bHealByAddedAmount)
 	{
 		CurrentHp = FMath::Clamp(CurrentHp, 0.0f, MaxHp);
 	}
+	//Call function PlayerCharacter->PlayMontage[Death Animation]
+
+	AActor* Actor = GetOwner();
+
+	if (!IsValid(Actor))
+	{
+		return;
+	}
+
+	Actor->Destroy();
 }
 
 float UCCharacterStatComponent::GetMaxHp() const

@@ -4,10 +4,20 @@
 #include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
 #include "DemonKing/Item/CItemBase.h"
 #include "Engine/World.h"
+#include "Net/UnrealNetwork.h"
 UCEnemyStatComponent::UCEnemyStatComponent()
 {
 
 	PrimaryComponentTick.bCanEverTick = true;
+	SetIsReplicatedByDefault(true);
+
+
+	MaxHp = 100.0f;
+	Defense = 100.0f;
+	CurrentHp = MaxHp;
+
+
+	
 }
 
 void UCEnemyStatComponent::BeginPlay()
@@ -26,8 +36,24 @@ void UCEnemyStatComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	
 }
 
+void UCEnemyStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UCEnemyStatComponent, CurrentHp);
+}
+
 void UCEnemyStatComponent::AttackPlayer(AActor* HitActor)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[UCEnemyStatComponent] ::AttackPlayer"));
+
+	if (!GetOwner()->HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCEnemyStatComponent]"
+			"::AttackPlayer !GetOwner->HasAuthority"));
+		return;
+	}
+
 	UCCharacterStatComponent* Player = HitActor->FindComponentByClass<UCCharacterStatComponent>();
 
 	if (!Player)
@@ -36,6 +62,7 @@ void UCEnemyStatComponent::AttackPlayer(AActor* HitActor)
 	}
 
 	Player->TakeDamage(AttackPower);
+	UE_LOG(LogTemp, Warning, TEXT("[UCEnemyStatComponent] :: AttackPlayer Succeeded Attack"));
 }
 
 void UCEnemyStatComponent::TakeDamage(float IncomingDamage)
@@ -52,6 +79,7 @@ void UCEnemyStatComponent::TakeDamage(float IncomingDamage,float DefensePenetrat
 
 	const float FinalDamage = CalculateFinalDamageTaken(IncomingDamage, DefensePenetration, DefenseIgnoreRate);
 	CurrentHp = FMath::Clamp(CurrentHp - FinalDamage, 0.0f, MaxHp);
+	OnEmenyHpChanged.Broadcast(GetHealthPercent());
 	
 	
 	if (CurrentHp <= 0.0f)
@@ -134,6 +162,8 @@ void UCEnemyStatComponent::DoTrace(const FBoxTraceData& BoxTraceData)
 
 	if (Hit)
 	{
+
+		UE_LOG(LogTemp, Warning, TEXT("[UCEnemyStatComponent] :: DoTrace Hit!"));
 		TSet<AActor*> AlreadyHitActors;
 		for (const FHitResult& HitResult : HitResults)
 		{
@@ -155,6 +185,8 @@ void UCEnemyStatComponent::DoTrace(const FBoxTraceData& BoxTraceData)
 			
 		}
 	}
+
+
 }
 
 void UCEnemyStatComponent::Die()
@@ -175,9 +207,22 @@ void UCEnemyStatComponent::Die()
 		return;
 	}
 
+
+	OnEnemyDied.Broadcast();
+	Owner->Destroy();
 	DropItem();
 	Owner->Destroy();
 	
+}
+
+void UCEnemyStatComponent::ServerAttackPlayer_Implementation(AActor* HitActor)
+{
+	AttackPlayer(HitActor);
+}
+
+void UCEnemyStatComponent::OnRep_Current()
+{
+	OnEmenyHpChanged.Broadcast(GetHealthPercent());
 }
 
 void UCEnemyStatComponent::DropItem()

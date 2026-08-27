@@ -29,6 +29,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player")
 	EPlayerClassType SelectedPlayerClass = EPlayerClassType::Warrior;
 
+	UFUNCTION(BlueprintCallable, Category = "PlayerNum")
+	void SetExpectedStagePlayerCount(int32 PlayerNum);
+	
+	FORCEINLINE int32 GetExpectedStagePlayerCount() { return ExpectedPlayerCount; }
+
 private:
 	URogueSaveSubsystem* GetSaveSS();
 
@@ -36,4 +41,5 @@ private:
 
 private:
 	URogueSaveSubsystem* SaveSS;
+	int32 ExpectedPlayerCount = 0;
 };

@@ -6,13 +6,15 @@
 #include "CCharacterStatComponent.generated.h"
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+
 class DEMONKING_API UCCharacterStatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	UCCharacterStatComponent();
-
 protected:
 	virtual void BeginPlay() override;
 
@@ -44,6 +46,11 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Stat|Combat")
 	float GetFinalAttackPower() const;
+	FORCEINLINE float GetHP_Percent() { return CurrentHp >= 0 ? CurrentHp / MaxHp : 0; }
+
+	//블루프린트에서도 할 수 있게..
+	//공식은 같지만 마법사 체력이 낮고
+	//전사니까 체력이 높고
 
 	UFUNCTION(BlueprintPure, Category = "Stat|Combat")
 	float GetFinalAttackSpeed() const;

@@ -5,7 +5,11 @@
 #include "DemonKing/SkillStruct/BoxTraceTypes.h"
 #include "CEnemyStatComponent.generated.h"
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+
+DECLARE_MULTICAST_DELEGATE(FOnEnemyDied);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnEmenyHpChanged, float);
+
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class DEMONKING_API UCEnemyStatComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -18,6 +22,7 @@ protected:
 
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void AttackPlayer(AActor* HitActor);
 
@@ -28,8 +33,17 @@ public:
 	void DoTrace(const FBoxTraceData& BoxTraceData);
 	void Die();
 
-	FORCEINLINE void SetMaxHp(float Hp) { MaxHp = FMath::Max(0.0f, Hp); CurrentHp = MaxHp; }
-	FORCEINLINE void SetAttackPower(float Power) { AttackPower = FMath::Max(0.0f, Power); }
+	UFUNCTION(Server, Reliable)
+	void ServerAttackPlayer(AActor* HitActor);
+
+	
+
+	UFUNCTION()
+	void OnRep_Current();
+
+	FORCEINLINE void SetMaxHp(float Hp) { MaxHp = Hp; }
+	FORCEINLINE void SetAttackPower(float Power) { AttackPower = Power; }
+	FORCEINLINE float GetHealthPercent() { return MaxHp > 0.0f ? CurrentHp / MaxHp : 0.0f; }
 
 	UFUNCTION(BlueprintPure, Category = "Stat")
 	float CalculateFinalDamageTaken(float IncomingDamage, float DefensePenetration, float DefenseIgnoreRate) const;
@@ -41,6 +55,10 @@ public:
 	void RemoveDamageTakenAmp(float IncreaseRate);
 
 	void DropItem();
+public:
+	FOnEnemyDied OnEnemyDied;
+	FOnEmenyHpChanged OnEmenyHpChanged;
+
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
@@ -51,6 +69,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat|Base")
 	float CurrentHp = 100.0f;
+private:
+	float MaxHp;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Current)
+	float CurrentHp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stat|Base")
 	float AttackPower = 10.0f;

@@ -23,7 +23,13 @@ protected:
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	virtual APawn* SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform) override;
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
-	virtual void BeginPlay() override;
+	virtual void Logout(AController* Exiting) override;
+
+	virtual void InitGameState() override;
+
+	//virtual void StartPlay() override;
+
+	virtual void OnSpawnQueueDrained() {}
 
 	UFUNCTION()
 	void TrySpawnPendingPlayer();
@@ -44,8 +50,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawn")
 	float SpawnRetryInterval = 0.05f;
 
-	UPROPERTY()
-	TObjectPtr<APlayerController> PendingPlayerController;
+	UPROPERTY(Transient)
+	TArray<TWeakObjectPtr<APlayerController>> PendingPlayerController;
 
 	FTimerHandle SpawnRetryTimerHandle;
 

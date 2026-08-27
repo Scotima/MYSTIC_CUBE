@@ -3,7 +3,7 @@
 #include "DemonKing/GameFlow/RogueGameState.h"
 #include "DemonKing/SaveGame/RogueSaveSubsystem.h"
 #include "GameFramework/PlayerController.h"
-
+#include "DemonKing/GameFlow/MyGameInstance.h"
 ARogueGameModeBase::ARogueGameModeBase()
 {
 
@@ -14,11 +14,15 @@ ARogueGameModeBase::ARogueGameModeBase()
     
 
     //스테이지 이름 미정일 시 기본 3단계로 고정.
-    StageOrder = { FName("Stage_01"), FName("Stage_02"), FName("Stage_03") };
+    StageOrder = {FName("Stage_00"), FName("Stage_01"), FName("Stage_02"), FName("Stage_03")};
 
     // 실제 맵이 생기면 아래처럼 채우면 됨:
     // StageToMaps["stage1"].MapPaths = { "/Game/Maps/stage1-1", "/Game/Maps/stage1-2" ... }
     {
+        FStageMapList List0;
+        List0.MapPaths = { FName(*DefaultRunMapPath) };
+        StageToMaps.Add(FName("Stage_00"), List0);
+
         FStageMapList List1;
         List1.MapPaths = { FName(*DefaultRunMapPath) };
         StageToMaps.Add(FName("Stage_01"), List1);
@@ -59,7 +63,7 @@ void ARogueGameModeBase::StartRun()
     APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
     URogueSaveSubsystem* SaveSS = GetSaveSS();
 
-    FName StageId = FName("Stage_01");
+    FName StageId = FName("Stage_00");
     int32 StageMapIndex = 0;
     int32 RunSeed = 0;// 안쓰는거
     int32 StageSeed = 0;//안쓰는거
@@ -83,7 +87,21 @@ void ARogueGameModeBase::StartRun()
         bResumed ? TEXT("RESUME") : TEXT("NEW"),
         *StageId.ToString(), StageMapIndex, RunSeed, StageSeed);
 
+    int32 ExpectedPlayerNum = GetNumPlayers();
+
+    UMyGameInstance* MyGameInstance = Cast<UMyGameInstance>(GetGameInstance());
+
+    if (!MyGameInstance)
+    {   
+        UE_LOG(LogTemp, Warning, TEXT("MyGameInstance is null"));
+        return;
+    }
+
+    MyGameInstance->SetExpectedStagePlayerCount(ExpectedPlayerNum);
+
     ServerTravelToStage(StageId, StageMapIndex);
+
+
 
    
 }
@@ -278,6 +296,8 @@ void ARogueGameModeBase::StartPlay()
     {
         UE_LOG(LogTemp, Warning, TEXT("[GM StartPlay] GS is null"));
     }
+
+  
 }
 
 ARogueGameState* ARogueGameModeBase::GetRogueGS() const
