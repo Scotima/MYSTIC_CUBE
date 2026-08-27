@@ -17,8 +17,16 @@ void UCPlayerHPWidgetComponent::BeginPlay()
 		return;
 	}
 
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
 
-	ARoguePlayerState* PS = Cast<ARoguePlayerState>(GetOwner());
+	if (!IsValid(OwnerPawn))
+	{
+		return;
+	}
+
+
+
+	ARoguePlayerState* PS = Cast<ARoguePlayerState>(OwnerPawn->GetPlayerState());
 
 	if (!PS)
 	{

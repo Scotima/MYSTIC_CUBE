@@ -26,6 +26,13 @@ enum class EndStage : uint8
 	Cleared
 };
 
+USTRUCT(BlueprintType)
+struct FMonster_Class_LocationInform
+{
+	GENERATED_BODY()
+	TSubclassOf<APawn> MonsterCharacterArray;
+	FVector MonsterLocationArray;
+};
 
 UCLASS()
 class DEMONKING_API ACStageGameMode : public ARogueStartGameMode
@@ -43,9 +50,9 @@ public:
 
 	bool All_Expected_Player_Spawned();
 
-	bool TrySpawnSingleMonster(const FVector& PreparedSpawnLocation, const FMonster_Imformation& MonsterInfo);
+	bool TrySpawnSingleMonster(const FVector& PreparedSpawnLocation, const FMonster_Imformation& MonsterInfo, TSubclassOf<APawn> Monster);
 
-	bool IsMonsterSpawnLocationClear(const FVector& NavFloorLocation, FVector& OutSpawnLocation) const;
+	bool IsMonsterSpawnLocationClear(const FVector& NavFloorLocation, FVector& OutSpawnLocation, TSubclassOf<APawn> Monster) const;
 
 
 	UFUNCTION(BlueprintCallable)
@@ -66,8 +73,12 @@ protected:
 
 
 protected:
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Monster")
-	TSubclassOf<APawn> MonsterClass;
+	TArray<TSubclassOf<APawn>> MonsterArray;
+
+	/*UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Monster")
+	TSubclassOf<APawn> MonsterClass;*/
 
 	UPROPERTY(EditDefaultsOnly, Category = "Monster")
 	int32 MonsterCount = 3;
@@ -76,6 +87,7 @@ private:
 	FRandomStream SpawnRandomStream;
 
 	TArray<FVector> MonsterSpawnLocations;
+	TArray<FMonster_Class_LocationInform> RandomMonsterInform;
 	TQueue<FMonster_Imformation> MonsterQueue;
 
 	int32 ExpectedPlayerNum = 0;

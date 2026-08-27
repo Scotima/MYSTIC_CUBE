@@ -48,6 +48,7 @@ void UCEnemyStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 
 void UCEnemyStatComponent::AttackPlayer(AActor* HitActor)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[UCEnemyStatComponent] ::AttackPlayer"));
 
 	if (!GetOwner()->HasAuthority())
 	{
@@ -64,6 +65,7 @@ void UCEnemyStatComponent::AttackPlayer(AActor* HitActor)
 	}
 
 	Player->TakeDamage(AttackPower);
+	UE_LOG(LogTemp, Warning, TEXT("[UCEnemyStatComponent] :: AttackPlayer Succeeded Attack"));
 }
 
 void UCEnemyStatComponent::TakeDamage(float PlayerPower,float DefensePenetration, float DefenseIgnoreRate)
@@ -146,6 +148,8 @@ void UCEnemyStatComponent::DoTrace(const FBoxTraceData& BoxTraceData)
 
 	if (Hit)
 	{
+
+		UE_LOG(LogTemp, Warning, TEXT("[UCEnemyStatComponent] :: DoTrace Hit!"));
 		TSet<AActor*> AlreadyHitActors;
 		for (const FHitResult& HitResult : HitResults)
 		{
@@ -163,10 +167,12 @@ void UCEnemyStatComponent::DoTrace(const FBoxTraceData& BoxTraceData)
 
 			AlreadyHitActors.Add(HitActor);
 
-			ServerAttackPlayer(HitActor);
+			AttackPlayer(HitActor);
 			
 		}
 	}
+
+
 }
 
 void UCEnemyStatComponent::Die()

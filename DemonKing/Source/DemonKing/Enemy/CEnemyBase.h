@@ -28,7 +28,7 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void Play_AnimMontage();
+	float Play_AnimMontage();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Anim")

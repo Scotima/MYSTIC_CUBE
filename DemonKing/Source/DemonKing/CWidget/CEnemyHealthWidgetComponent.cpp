@@ -25,6 +25,7 @@ void UCEnemyHealthWidgetComponent::BeginPlay()
 
 	if (!EST)
 	{
+		//UE_LOG(LogTemp, Warning, TEXT("[UCEnemyHealthWidgetComponent] BeginPlay !EST"));
 		return;
 	}
 

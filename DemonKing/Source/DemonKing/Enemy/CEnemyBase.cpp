@@ -29,8 +29,31 @@ void ACEnemyBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 }
 
-void ACEnemyBase::Play_AnimMontage()
+float ACEnemyBase::Play_AnimMontage()
 {
+	if (!IsValid(AttackAnim))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACEnemyBase] :: Play_AnimMontage -> !IsValid AttackAnim"));
+		return 0.0f;
+	}
 
+	USkeletalMeshComponent* SMC = GetMesh();
+
+	if (!SMC)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACEnemyBase] :: Play_AnimMontage -> !SMC"));
+		return 0.0f;
+	}
+
+	UAnimInstance* Anim_Ins = SMC->GetAnimInstance();
+
+	if (!Anim_Ins)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ACEnemyBase] :: Play_AnimMontage -> !Anim_Ins"));
+		return 0.0f;
+	}
+
+
+	return Anim_Ins->Montage_Play(AttackAnim);
 }
 

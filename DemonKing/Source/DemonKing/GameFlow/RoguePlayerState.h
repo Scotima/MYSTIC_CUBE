@@ -23,7 +23,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "NickName")
 	FString GetLobbyPlayerNickName();
 
-	FORCEINLINE void SetPlayerState_HP(float hp) { CurrentHpPercent = hp; }
+	void SetPlayerState_HP(float hp);
 	FORCEINLINE float GetPlayerState_HP() { return CurrentHpPercent;}
 
 

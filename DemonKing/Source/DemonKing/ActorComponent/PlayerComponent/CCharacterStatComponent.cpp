@@ -6,8 +6,9 @@ UCCharacterStatComponent::UCCharacterStatComponent()
 {
 	
 	PrimaryComponentTick.bCanEverTick = true;
-
-	MaxHp = CurrentHp;
+	
+	MaxHp = 500.0f;
+	CurrentHp = MaxHp;
 }
 
 
@@ -22,14 +23,14 @@ void UCCharacterStatComponent::BeginPlay()
 
 	if (!OwnerPawn)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: TakeDamage !OwnerPawn"));
+		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: BeginPlay()!OwnerPawn"));
 		return;
 	}
 	ARoguePlayerState* PS = Cast<ARoguePlayerState>(OwnerPawn->GetPlayerState());
 
 	if (!PS)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: TakeDamage !Ps"));
+		UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: BeginPlay() !Ps"));
 		return;
 	}
 
@@ -49,6 +50,8 @@ void UCCharacterStatComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 void UCCharacterStatComponent::TakeDamage(float MonsterPower)
 {
+
+	UE_LOG(LogTemp, Warning, TEXT("[UCCharacterStatComponent] :: TakeDamage"));
 	if (CurrentHp <= 0)
 	{
 		return;
@@ -84,5 +87,14 @@ void UCCharacterStatComponent::TakeDamage(float MonsterPower)
 void UCCharacterStatComponent::Die()
 {
 	//Call function PlayerCharacter->PlayMontage[Death Animation]
+
+	AActor* Actor = GetOwner();
+
+	if (!IsValid(Actor))
+	{
+		return;
+	}
+
+	Actor->Destroy();
 }
 

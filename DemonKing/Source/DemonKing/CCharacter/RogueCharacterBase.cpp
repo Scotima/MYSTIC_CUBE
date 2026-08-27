@@ -5,6 +5,9 @@
 #include "Components/MeshComponent.h"
 #include "Engine/World.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "DemonKing/GameFlow/RoguePlayerState.h"
+#include "DemonKing/CWidget/CPlayerHPWidgetComponent.h"
+#include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
 
 ARogueCharacterBase::ARogueCharacterBase()
 {
@@ -45,6 +48,71 @@ void ARogueCharacterBase::BeginPlay()
 	{
 		OcclusionSpringArm->bDoCollisionTest = false;
 	}
+}
+
+void ARogueCharacterBase::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	ARoguePlayerState* RPS = Cast<ARoguePlayerState>(GetPlayerState());
+
+	if (!IsValid(RPS))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ARogueCharacterBase] :: OnRep_PlayerState !RPS"));
+		return;
+	}
+
+	UCPlayerHPWidgetComponent* PHPWidgetComp = FindComponentByClass<UCPlayerHPWidgetComponent>();
+
+	if (!IsValid(PHPWidgetComp))
+	{
+		return;
+	}
+
+	RPS->OnPlayerHpChanged.RemoveAll(PHPWidgetComp);
+
+	RPS->OnPlayerHpChanged.AddUObject(PHPWidgetComp, &UCPlayerHPWidgetComponent::UpdateHealthComponent);
+
+	
+	PHPWidgetComp->UpdateHealthComponent(RPS->GetPlayerState_HP());
+
+	UE_LOG(LogTemp, Warning, TEXT("[ARogueCharacterBase] :: OnRep_PlayerState() BindComplete"));
+
+}
+
+void ARogueCharacterBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	ARoguePlayerState* RPS = Cast<ARoguePlayerState>(GetPlayerState());
+
+	if (!IsValid(RPS))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ARogueCharacterBase] :: OnRep_PlayerState !RPS"));
+		return;
+	}
+
+	UCPlayerHPWidgetComponent* PHPWidgetComp = FindComponentByClass<UCPlayerHPWidgetComponent>();
+
+	if (!IsValid(PHPWidgetComp))
+	{
+		return;
+	}
+
+	RPS->OnPlayerHpChanged.RemoveAll(PHPWidgetComp);
+
+	RPS->OnPlayerHpChanged.AddUObject(PHPWidgetComp, &UCPlayerHPWidgetComponent::UpdateHealthComponent);
+
+	Refresh_HP();
+	PHPWidgetComp->UpdateHealthComponent(RPS->GetPlayerState_HP());
+	UE_LOG(LogTemp, Warning, TEXT("[ARogueCharacterBase] :: OnRep_PlayerState() BindComplet"));
+
+
+}
+
+void ARogueCharacterBase::Refresh_HP()
+{
+	//자식에서 재정의.
 }
 
 // Called every frame
