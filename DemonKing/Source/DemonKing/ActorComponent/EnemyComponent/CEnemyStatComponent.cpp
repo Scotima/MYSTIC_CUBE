@@ -4,25 +4,27 @@
 #include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
 #include "DemonKing/Item/CItemBase.h"
 #include "Engine/World.h"
+#include "Net/UnrealNetwork.h"
 UCEnemyStatComponent::UCEnemyStatComponent()
 {
 
 	PrimaryComponentTick.bCanEverTick = true;
-	//MaxHp = 100.0f;
+	SetIsReplicatedByDefault(true);
+
+
+	MaxHp = 100.0f;
 	Defense = 100.0f;
 	CurrentHp = MaxHp;
 
+
 	
 }
-//함수 체력 받고 방어력 받으면
-//* / 개지랄 염병을 떨어서 리턴을 하겠지 함수를 flaot형으로 처리를 할 예정.,
-
 
 void UCEnemyStatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-
+	CurrentHp = MaxHp;
 }
 
 
@@ -34,8 +36,24 @@ void UCEnemyStatComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	
 }
 
+void UCEnemyStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UCEnemyStatComponent, CurrentHp);
+}
+
 void UCEnemyStatComponent::AttackPlayer(AActor* HitActor)
 {
+	UE_LOG(LogTemp, Warning, TEXT("[UCEnemyStatComponent] ::AttackPlayer"));
+
+	if (!GetOwner()->HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCEnemyStatComponent]"
+			"::AttackPlayer !GetOwner->HasAuthority"));
+		return;
+	}
+
 	UCCharacterStatComponent* Player = HitActor->FindComponentByClass<UCCharacterStatComponent>();
 
 	if (!Player)
@@ -44,26 +62,24 @@ void UCEnemyStatComponent::AttackPlayer(AActor* HitActor)
 	}
 
 	Player->TakeDamage(AttackPower);
+	UE_LOG(LogTemp, Warning, TEXT("[UCEnemyStatComponent] :: AttackPlayer Succeeded Attack"));
 }
 
-void UCEnemyStatComponent::TakeDamage(float PlayerPower,float DefensePenetration, float DefenseIgnoreRate)
+void UCEnemyStatComponent::TakeDamage(float IncomingDamage)
 {
-	if (CurrentHp <= 0)
+	TakeDamage(IncomingDamage, 0.0f, 0.0f);
+}
+
+void UCEnemyStatComponent::TakeDamage(float IncomingDamage,float DefensePenetration, float DefenseIgnoreRate)
+{
+	if (isDead || !bCanBeDamaged || CurrentHp <= 0.0f)
 	{
 		return; //Aready Hp is Zero return
 	}
 
-	DefenseIgnoreRate = FMath::Clamp(DefenseIgnoreRate, 0.0f, 1.0f);
-
-	float EffectiveDefense = Defense - DefensePenetration;
-	EffectiveDefense = FMath::Max(0.0f, EffectiveDefense);
-	
-	EffectiveDefense *= (1.0f - DefenseIgnoreRate);
-
-	const float DamageRate = 100.0f / (100.0f + EffectiveDefense);
-	const float FinalDamage = FMath::Max(1.0f, PlayerPower * DamageRate);
-
+	const float FinalDamage = CalculateFinalDamageTaken(IncomingDamage, DefensePenetration, DefenseIgnoreRate);
 	CurrentHp = FMath::Clamp(CurrentHp - FinalDamage, 0.0f, MaxHp);
+	OnEmenyHpChanged.Broadcast(GetHealthPercent());
 	
 	
 	if (CurrentHp <= 0.0f)
@@ -71,6 +87,27 @@ void UCEnemyStatComponent::TakeDamage(float PlayerPower,float DefensePenetration
 		Die();
 	}
 
+}
+
+float UCEnemyStatComponent::CalculateFinalDamageTaken(float IncomingDamage, float DefensePenetration, float DefenseIgnoreRate) const
+{
+	const float ClampedDefenseIgnoreRate = FMath::Clamp(DefenseIgnoreRate, 0.0f, 1.0f);
+	const float EffectiveDefense = FMath::Max(0.0f, Defense - DefensePenetration) * (1.0f - ClampedDefenseIgnoreRate);
+	const float DamageReduction = FMath::Clamp(EffectiveDefense / (EffectiveDefense + ArmorK), 0.0f, MaxDamageReduction);
+
+	return FMath::Max(0.0f, IncomingDamage)
+		* FMath::Max(0.0f, 1.0f + DamageTakenAmpSum)
+		* (1.0f - DamageReduction);
+}
+
+void UCEnemyStatComponent::AddDamageTakenAmp(float IncreaseRate)
+{
+	DamageTakenAmpSum += IncreaseRate;
+}
+
+void UCEnemyStatComponent::RemoveDamageTakenAmp(float IncreaseRate)
+{
+	DamageTakenAmpSum -= IncreaseRate;
 }
 
 void UCEnemyStatComponent::DoTrace(const FBoxTraceData& BoxTraceData)
@@ -125,6 +162,8 @@ void UCEnemyStatComponent::DoTrace(const FBoxTraceData& BoxTraceData)
 
 	if (Hit)
 	{
+
+		UE_LOG(LogTemp, Warning, TEXT("[UCEnemyStatComponent] :: DoTrace Hit!"));
 		TSet<AActor*> AlreadyHitActors;
 		for (const FHitResult& HitResult : HitResults)
 		{
@@ -146,11 +185,21 @@ void UCEnemyStatComponent::DoTrace(const FBoxTraceData& BoxTraceData)
 			
 		}
 	}
+
+
 }
 
 void UCEnemyStatComponent::Die()
 {
 	//call function Enemy->PlayMontage and Destroy this;
+	if (isDead)
+	{
+		return;
+	}
+
+	isDead = true;
+	bCanBeDamaged = false;
+
 	AActor* Owner = GetOwner();
 
 	if (!IsValid(Owner))
@@ -158,9 +207,22 @@ void UCEnemyStatComponent::Die()
 		return;
 	}
 
+
+	OnEnemyDied.Broadcast();
 	Owner->Destroy();
 	DropItem();
+	Owner->Destroy();
 	
+}
+
+void UCEnemyStatComponent::ServerAttackPlayer_Implementation(AActor* HitActor)
+{
+	AttackPlayer(HitActor);
+}
+
+void UCEnemyStatComponent::OnRep_Current()
+{
+	OnEmenyHpChanged.Broadcast(GetHealthPercent());
 }
 
 void UCEnemyStatComponent::DropItem()
@@ -178,7 +240,7 @@ void UCEnemyStatComponent::DropItem()
 	FVector SpawnLocation = Owner->GetActorLocation();
 	FRotator SpawnRotation = Owner->GetActorRotation();
 
-	FActorSpawnParameters SpawnParams; // 만약 스폰하려는 위치에 뭔가 충돌할만한게 있으면 알아서 수정.
+	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = Owner;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 

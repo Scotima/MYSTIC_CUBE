@@ -29,13 +29,13 @@ public:
 	UFUNCTION(Exec)
 	void StartRun();
 
-	UFUNCTION(Exec)
+	UFUNCTION(Exec, BlueprintCallable)
 	void AdvanceStage();
 
 	UFUNCTION(Exec)
 	void EndRun(ERogueRunEndReason Reason);
 
-	UFUNCTION(Exec)
+	UFUNCTION(Exec, BlueprintCallable)
 	void AdvanceMapWithinStage();
 
 

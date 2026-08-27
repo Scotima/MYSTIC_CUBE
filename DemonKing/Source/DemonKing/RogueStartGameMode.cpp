@@ -8,6 +8,7 @@
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerController.h"
 #include "TimerManager.h"
+#include "DemonKing/GameFlow/RogueGameState.h"
 
 ARogueStartGameMode::ARogueStartGameMode()
 {
@@ -15,6 +16,17 @@ ARogueStartGameMode::ARogueStartGameMode()
 }
 
 void ARogueStartGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	
+}
+
+void ARogueStartGameMode::BeginPlay()
+{
+
+}
+
+
+void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	UE_LOG(LogTemp, Warning, TEXT("[ARogueStartGameMode::HandleStartingNewPlayer_Implementation]"));
 
@@ -24,7 +36,8 @@ void ARogueStartGameMode::HandleStartingNewPlayer_Implementation(APlayerControll
 		return;
 	}
 
-	PendingPlayerController = NewPlayer;
+	PendingPlayerController.AddUnique(NewPlayer);
+	
 
 	// 이미 타이머가 돌고 있지 않으면 시작
 	if (!GetWorldTimerManager().IsTimerActive(SpawnRetryTimerHandle))
@@ -39,6 +52,45 @@ void ARogueStartGameMode::HandleStartingNewPlayer_Implementation(APlayerControll
 	}
 }
 
+void ARogueStartGameMode::Logout(AController* Exiting)
+{
+	PendingPlayerController.RemoveAll([Exiting](const TWeakObjectPtr<APlayerController>& PendingPlayer)
+		{
+			return !PendingPlayer.IsValid() || PendingPlayer.Get() == Exiting;
+		}
+	);
+
+	if (PendingPlayerController.IsEmpty())
+	{
+		GetWorldTimerManager().ClearTimer(SpawnRetryTimerHandle);
+
+	}
+
+	Super::Logout(Exiting);
+}
+
+void ARogueStartGameMode::InitGameState()
+{
+	Super::InitGameState();
+
+	ARogueGameState* GS =
+		GetGameState<ARogueGameState>();
+
+	if (!GS)
+	{
+		UE_LOG(
+			LogTemp,
+			Warning,
+			TEXT("RogueStartGameMode: GameState is null")
+		);
+		return;
+	}
+
+	GS->SetRunActive(true);
+}
+
+
+
 
 void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
 {
@@ -47,94 +99,75 @@ void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
 
 void ARogueStartGameMode::TrySpawnPendingPlayer()
 {
-	if (!PendingPlayerController)
+
+	for (int32 Index = PendingPlayerController.Num() - 1; Index >= 0; --Index)
+	{
+		APlayerController* PlayerController = PendingPlayerController[Index].Get();
+
+		if (!IsValid(PlayerController))
+		{
+			PendingPlayerController.RemoveAt(Index);
+			continue;
+		}
+
+		if (IsValid(PlayerController->GetPawn()))
+		{
+			PendingPlayerController.RemoveAt(Index);
+			continue;
+		}
+
+
+		RestartPlayer(PlayerController);
+
+		if (IsValid(PlayerController->GetPawn()))
+		{
+			PendingPlayerController.RemoveAt(Index);
+
+		}
+	}
+
+	if (PendingPlayerController.Num() == 0)
 	{
 		GetWorldTimerManager().ClearTimer(SpawnRetryTimerHandle);
-		return;
+		OnSpawnQueueDrained();
 	}
 
-	// 이미 Pawn이 있으면 종료
-	if (PendingPlayerController->GetPawn())
-	{
-		GetWorldTimerManager().ClearTimer(SpawnRetryTimerHandle);
-		return;
-	}
-
-	FTransform SpawnTransform;
-	if (!FindGroundedSpawnTransform(SpawnTransform))
-	{
-		// 아직 바닥이 준비 안 됐으면 다음 틱에 다시 시도
-		UE_LOG(LogTemp, Warning, TEXT("TrySpawning."));
-		return;
-	}
-
-	// 바닥을 찾았을 때만 실제 스폰
-	RestartPlayer(PendingPlayerController);
-	UE_LOG(LogTemp, Warning, TEXT("[dddd]RestartPlayer"));
-
-	// 스폰 성공 여부 확인
-	if (PendingPlayerController->GetPawn())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("SuccessPawn"));
-		GetWorldTimerManager().ClearTimer(SpawnRetryTimerHandle);
-	}
+	
 }
 
 AActor* ARogueStartGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		return Super::ChoosePlayerStart_Implementation(Player);
-	}
-
-	for (TActorIterator<APlayerStart> It(World); It; ++It)
-	{
-		return *It;
-	}
+	
 
 	return Super::ChoosePlayerStart_Implementation(Player);
 }
 
 bool ARogueStartGameMode::FindGroundedSpawnTransform(FTransform& OutTransform) const
 {
-	UWorld* World = GetWorld();
-	if (!World)
+	UWorld* world = GetWorld();
+
+	if (!world)
 	{
 		return false;
 	}
 
-	AActor* StartActor = const_cast<ARogueStartGameMode*>(this)->ChoosePlayerStart_Implementation(nullptr);
-	if (!StartActor)
-	{
-		return false;
-	}
+	const FVector BaseLocation = OutTransform.GetLocation();
 
-	const FVector BaseLocation = StartActor->GetActorLocation();
-	const FVector TraceStart = BaseLocation + FVector(0.f, 0.f, TraceStartZOffset);
-	const FVector TraceEnd = BaseLocation + FVector(0.f, 0.f, -TraceEndZOffset);
+	const FVector TraceStart = BaseLocation + FVector(0.0f, 0.0f, TraceStartZOffset);
+	const FVector TraceEnd = BaseLocation - FVector(0.0f, 0.0f, TraceEndZOffset);
 
 	FHitResult HitResult;
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(this);
+	FCollisionQueryParams queryparams;
+	queryparams.AddIgnoredActor(this);
 
-	const bool bHit = World->LineTraceSingleByChannel(
-		HitResult,
-		TraceStart,
-		TraceEnd,
-		ECC_Visibility,
-		QueryParams
-	);
-
-	if (!bHit)
+	if (!world->LineTraceSingleByChannel(
+	HitResult, TraceStart, TraceEnd, ECC_Visibility, queryparams))
 	{
 		return false;
 	}
 
-	const FVector FinalSpawnLocation = HitResult.Location + FVector(0.f, 0.f, SpawnZOffset);
-	const FRotator FinalSpawnRotation = StartActor->GetActorRotation();
+	OutTransform.SetLocation(HitResult.ImpactPoint + FVector(0.0f, 0.0f, SpawnZOffset));
 
-	OutTransform = FTransform(FinalSpawnRotation, FinalSpawnLocation);
 	return true;
 }
 
@@ -143,20 +176,29 @@ APawn* ARogueStartGameMode::SpawnDefaultPawnAtTransform_Implementation(
 	const FTransform& SpawnTransform)
 {
 	UWorld* World = GetWorld();
-	TSubclassOf<APawn> SelectedPawnClass = GetSelectedPawnClass();
-
-	if (!World || !SelectedPawnClass)
+	
+	if (!World)
 	{
-		return Super::SpawnDefaultPawnAtTransform_Implementation(NewPlayer, SpawnTransform);
-	}
-
-	// 여기서도 한 번 더 최종 보정
-	FTransform FinalTransform;
-	if (!FindGroundedSpawnTransform(FinalTransform))
-	{
-		// 바닥 못 찾으면 아예 스폰하지 않음
 		return nullptr;
 	}
+
+	FTransform FinalTransform = SpawnTransform;
+	
+	if (!FindGroundedSpawnTransform(FinalTransform))
+	{
+		return nullptr;
+	}
+
+
+	TSubclassOf<APawn> SelectedPawnClass = GetSelectedPawnClass();
+
+	if (!SelectedPawnClass)
+	{
+		return Super::SpawnDefaultPawnAtTransform_Implementation(NewPlayer, FinalTransform);
+	}
+
+
+
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = NewPlayer;

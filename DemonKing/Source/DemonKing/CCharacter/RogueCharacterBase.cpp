@@ -5,13 +5,25 @@
 #include "Components/MeshComponent.h"
 #include "Engine/World.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "DemonKing/GameFlow/RoguePlayerState.h"
+#include "DemonKing/CWidget/CPlayerHPWidgetComponent.h"
+#include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
+
 
 ARogueCharacterBase::ARogueCharacterBase()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	OcclusionSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	OcclusionSpringArm->SetupAttachment(RootComponent);
 
+	OcclusionSpringArm->TargetArmLength = 600.f;
+	OcclusionSpringArm->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
+	OcclusionSpringArm->bUsePawnControlRotation = false;
+
+	OcclusionCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	OcclusionCamera->SetupAttachment(OcclusionSpringArm, USpringArmComponent::SocketName);
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
@@ -37,6 +49,71 @@ void ARogueCharacterBase::BeginPlay()
 	{
 		OcclusionSpringArm->bDoCollisionTest = false;
 	}
+}
+
+void ARogueCharacterBase::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	ARoguePlayerState* RPS = Cast<ARoguePlayerState>(GetPlayerState());
+
+	if (!IsValid(RPS))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ARogueCharacterBase] :: OnRep_PlayerState !RPS"));
+		return;
+	}
+
+	UCPlayerHPWidgetComponent* PHPWidgetComp = FindComponentByClass<UCPlayerHPWidgetComponent>();
+
+	if (!IsValid(PHPWidgetComp))
+	{
+		return;
+	}
+
+	RPS->OnPlayerHpChanged.RemoveAll(PHPWidgetComp);
+
+	RPS->OnPlayerHpChanged.AddUObject(PHPWidgetComp, &UCPlayerHPWidgetComponent::UpdateHealthComponent);
+
+	
+	PHPWidgetComp->UpdateHealthComponent(RPS->GetPlayerState_HP());
+
+	UE_LOG(LogTemp, Warning, TEXT("[ARogueCharacterBase] :: OnRep_PlayerState() BindComplete"));
+
+}
+
+void ARogueCharacterBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	ARoguePlayerState* RPS = Cast<ARoguePlayerState>(GetPlayerState());
+
+	if (!IsValid(RPS))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ARogueCharacterBase] :: OnRep_PlayerState !RPS"));
+		return;
+	}
+
+	UCPlayerHPWidgetComponent* PHPWidgetComp = FindComponentByClass<UCPlayerHPWidgetComponent>();
+
+	if (!IsValid(PHPWidgetComp))
+	{
+		return;
+	}
+
+	RPS->OnPlayerHpChanged.RemoveAll(PHPWidgetComp);
+
+	RPS->OnPlayerHpChanged.AddUObject(PHPWidgetComp, &UCPlayerHPWidgetComponent::UpdateHealthComponent);
+
+	Refresh_HP();
+	PHPWidgetComp->UpdateHealthComponent(RPS->GetPlayerState_HP());
+	UE_LOG(LogTemp, Warning, TEXT("[ARogueCharacterBase] :: OnRep_PlayerState() BindComplet"));
+
+
+}
+
+void ARogueCharacterBase::Refresh_HP()
+{
+	//자식에서 재정의.
 }
 
 // Called every frame
@@ -243,4 +320,12 @@ void ARogueCharacterBase::InputSkillShift()
 	//자식에서 재정의
 }
 
+void ARogueCharacterBase::InputSkillLeftMouse()
+{
+	//자식에서 재정의.
+}
 
+
+void ARogueCharacterBase::InputSkillLeftMouseReleased()
+{
+}
