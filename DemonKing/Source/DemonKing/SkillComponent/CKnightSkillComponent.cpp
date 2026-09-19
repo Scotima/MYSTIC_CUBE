@@ -130,6 +130,8 @@ void UCKnightSkillComponent::DoTrace(const FBoxTraceData& BoxTraceData)
 				Damage = Stat->CalculateSkillDamage(CurrentSkillDamageCoefficient);
 			}
 
+			UE_LOG(LogTemp, Warning, TEXT("Damage = %f"), Damage);
+
 			Enemy->TakeDamage(Damage);
 		}
 	}

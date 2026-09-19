@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerState.h" 
 #include "Components/Button.h"
 #include "DemonKing/Online/MySessionSubsystem.h"
+#include "Blueprint/UserWidget.h"
 
 
 void ULobbyMainWidget::NativeConstruct()
@@ -18,6 +19,7 @@ void ULobbyMainWidget::NativeConstruct()
 
 	BackButton->OnClicked.AddDynamic(this, &ULobbyMainWidget::HandleReturnToLobby);
 	btn_InviteButton->OnClicked.AddDynamic(this, &ULobbyMainWidget::ShowInviteWidget);
+	SelectCharacterButton->OnClicked.AddDynamic(this,&ULobbyMainWidget::ShowCharacterSelectWidget);
 }
 
 void ULobbyMainWidget::RefreshPlayerList()
@@ -96,6 +98,25 @@ void ULobbyMainWidget::ShowInviteWidget()
 		UE_LOG(LogTemp, Warning, TEXT("[ULobbyMainWidget::ShowInviteWidget] mySubsystem nullptr"));
 		return;
 	}
+}
+
+void ULobbyMainWidget::ShowCharacterSelectWidget()
+{
+	APlayerController* PC = GetOwningPlayer();
+
+	if (!PC || !CharacterSelectWidegetClass)
+	{
+		return;
+	}
+
+	UUserWidget* CharacterSelectWidget = CreateWidget<UUserWidget>(PC, CharacterSelectWidegetClass);
+
+	if (!CharacterSelectWidget)
+	{
+		return;
+	}
+
+	CharacterSelectWidget->AddToViewport(10);
 }
 
 UMySessionSubsystem* ULobbyMainWidget::GetMYSS()

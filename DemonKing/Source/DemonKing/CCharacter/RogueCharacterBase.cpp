@@ -93,6 +93,15 @@ void ARogueCharacterBase::PossessedBy(AController* NewController)
 		return;
 	}
 
+	UCCharacterStatComponent* StatComponent = FindComponentByClass<UCCharacterStatComponent>();
+
+	if (!IsValid(StatComponent))
+	{
+		return;
+	}
+
+	StatComponent->InitializeStatsAfterPossession(RPS->GetPlayerId());
+
 	UCPlayerHPWidgetComponent* PHPWidgetComp = FindComponentByClass<UCPlayerHPWidgetComponent>();
 
 	if (!IsValid(PHPWidgetComp))
@@ -104,7 +113,8 @@ void ARogueCharacterBase::PossessedBy(AController* NewController)
 
 	RPS->OnPlayerHpChanged.AddUObject(PHPWidgetComp, &UCPlayerHPWidgetComponent::UpdateHealthComponent);
 
-	Refresh_HP();
+	//Refresh_HP();
+
 	PHPWidgetComp->UpdateHealthComponent(RPS->GetPlayerState_HP());
 	UE_LOG(LogTemp, Warning, TEXT("[ARogueCharacterBase] :: OnRep_PlayerState() BindComplet"));
 

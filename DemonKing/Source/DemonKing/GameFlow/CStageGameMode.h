@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "DemonKing/RogueStartGameMode.h"
 #include "Containers/Queue.h"
+#include "DemonKing/WaveInformationStruct/StageMonsterInformation.h"
 #include "CStageGameMode.generated.h"
 
 USTRUCT(BlueprintType)
@@ -18,7 +19,6 @@ struct  FMonster_Imformation
 };
 
 UENUM(BlueprintType)
-
 enum class EndStage : uint8
 {
 	None,
@@ -50,7 +50,7 @@ public:
 
 	bool All_Expected_Player_Spawned();
 
-	bool TrySpawnSingleMonster(const FVector& PreparedSpawnLocation, const FMonster_Imformation& MonsterInfo, TSubclassOf<APawn> Monster);
+	bool TrySpawnSingleMonster(const FVector& PreparedSpawnLocation, const FStageMonsterInformation& MonsterInfo, TSubclassOf<APawn> Monster);
 
 	bool IsMonsterSpawnLocationClear(const FVector& NavFloorLocation, FVector& OutSpawnLocation, TSubclassOf<APawn> Monster) const;
 
@@ -82,13 +82,20 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Monster")
 	int32 MonsterCount = 3;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "DataTable")
+	TObjectPtr<UDataTable> StageMonsterDataTable;
+
 private:
 	TArray<TWeakObjectPtr<APawn>> PlayerPawns; // 접속한 플레이어 정보 저장.
 	FRandomStream SpawnRandomStream;
 
 	TArray<FVector> MonsterSpawnLocations;
 	TArray<FMonster_Class_LocationInform> RandomMonsterInform;
-	TQueue<FMonster_Imformation> MonsterQueue;
+
+	TQueue<FStageMonsterInformation> MonsterQueue;
+
+
 
 	int32 ExpectedPlayerNum = 0;
 

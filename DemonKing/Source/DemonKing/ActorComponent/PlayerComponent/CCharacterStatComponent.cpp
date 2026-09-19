@@ -1,15 +1,19 @@
 #include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
 #include "DemonKing/GameFlow/RoguePlayerState.h"
 
+
 UCCharacterStatComponent::UCCharacterStatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-}
 
-	
+
 	MaxHp = 500.0f;
 	CurrentHp = MaxHp;
 }
+
+	
+
+
 
 
 
@@ -42,7 +46,15 @@ void UCCharacterStatComponent::BeginPlay()
 		return;
 	}
 
-	PS->SetPlayerState_HP(GetHP_Percent());
+	UMyGameInstance* GI = GetInstance();
+
+	if (!GI)
+	{
+		return;
+	}
+
+	//GI->SetHP_Percent(OwnerPawn,GetHP_Percent());
+	//PS->SetPlayerState_HP(GetHP_Percent());
 
 	
 }
@@ -63,6 +75,9 @@ void UCCharacterStatComponent::InitByClass(EPlayerClassType ClassType)
 		SetBaseStats(300.0f, 10.0f, 48.0f, 0.0f);
 		break;
 	case EPlayerClassType::Archer:
+		SetBaseStats(330.0f, 15.0f, 32.0f, 1.25f);
+		break;
+	case EPlayerClassType::Assasin:
 		SetBaseStats(330.0f, 15.0f, 32.0f, 1.25f);
 		break;
 	default:
@@ -158,6 +173,15 @@ float UCCharacterStatComponent::GetDamageReduction() const
 
 void UCCharacterStatComponent::TakeDamage(float IncomingDamage)
 {
+	APawn* Pawn = Cast<APawn>(GetOwner());
+
+	if (!IsValid(Pawn) || !Pawn->HasAuthority())
+	{
+		return; // 서버에서만 체력을 변경.. 로컬에서 함부로 체력을 바꾸는 일을 줄이기 위함.
+	}
+
+
+
 	if (isDead || !bCanBeDamaged || CurrentHp <= 0.0f)
 	{
 		return;
@@ -180,12 +204,23 @@ void UCCharacterStatComponent::TakeDamage(float IncomingDamage)
 		return;
 	}
 
-	PS->SetPlayerState_HP(GetHP_Percent());
+	UMyGameInstance* GI = GetInstance();
+
+	if (!GI)
+	{
+		return;
+	}
+
+	GI->SetHP_Percent(OwnerPawn,GetHP_Percent());
+
+	//PS->SetPlayerState_HP(GetHP_Percent());
 
 	if (CurrentHp <= 0.0f)
 	{
 		Die();
 	}
+
+	//todo  codex.cmd resume 01a0a443-48c3-7d01-a763-dc71fa717a66  - TakeDamage()에서 체력을 변경하기 전에 서버 권한 검사. 기능 구현하기.
 }
 
 void UCCharacterStatComponent::Heal(float Amount)
@@ -224,7 +259,7 @@ void UCCharacterStatComponent::AddMaxHp(float Amount, bool bHealByAddedAmount)
 		return;
 	}
 
-	Actor->Destroy();
+	//Actor->Destroy();
 }
 
 float UCCharacterStatComponent::GetMaxHp() const
@@ -337,4 +372,65 @@ void UCCharacterStatComponent::Die()
 	isDead = true;
 	bCanBeDamaged = false;
 	// TODO: Call owner character death animation or state transition.
+}
+
+void UCCharacterStatComponent::InitializeStatsAfterPossession(int32 PlayerId)
+{
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+
+	if (!IsValid(OwnerPawn) || !OwnerPawn->HasAuthority())
+	{
+		return;
+	}
+
+	if (bStatsInitialized)
+	{
+		return;
+	}
+
+	ARoguePlayerState* PS = OwnerPawn->GetPlayerState<ARoguePlayerState>();
+
+	if (!IsValid(PS) || PS->GetPlayerId() != PlayerId)
+	{
+		return;
+	}
+
+	UMyGameInstance* GI = GetInstance();
+
+	if (!GI)
+	{
+		return;
+	}
+
+	InitByClass(DefaultClassType);
+
+	if (MaxHp <= 0)
+	{
+		return;
+	}
+
+	float HpPercent = 1.0f;
+	GI->TryGetSavedHPPercent(PlayerId, HpPercent);
+
+	HpPercent = FMath::Clamp(HpPercent, 0.0f, 1.0f);
+	CurrentHp = MaxHp * HpPercent;
+
+	isDead = CurrentHp <= 0.0f;
+	bCanBeDamaged = !isDead;
+	bStatsInitialized = true;
+
+	GI->SetHP_Percent(OwnerPawn, HpPercent);
+
+}
+
+UMyGameInstance* UCCharacterStatComponent::GetInstance() const
+{
+	UWorld* World = GetWorld();
+
+	if (!World)
+	{
+		return nullptr;
+	}
+
+	return Cast<UMyGameInstance>(World->GetGameInstance());
 }

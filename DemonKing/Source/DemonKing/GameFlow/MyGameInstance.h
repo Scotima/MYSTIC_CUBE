@@ -5,13 +5,15 @@
 #include "MyGameInstance.generated.h"
 
 class URogueSaveSubsystem;
+class APawn;
 
 UENUM(BlueprintType)
 enum class EPlayerClassType : uint8
 {
 	Warrior UMETA(DisplayName = "Warrior"),
 	Mage UMETA(DisplayName = "Mage"),
-	Archer UMETA(DisplayName = "Archer")
+	Archer UMETA(DisplayName = "Archer"),
+	Assasin UMETA(DisplayName = "Assasin")
 };
 
 UCLASS()
@@ -34,6 +36,11 @@ public:
 	
 	FORCEINLINE int32 GetExpectedStagePlayerCount() { return ExpectedPlayerCount; }
 
+	void SetHP_Percent(APawn* PlayerPawn,float currentHP);
+
+	bool TryGetSavedHPPercent(int32 PlayerId, float& OutHPPercent) const;
+
+
 private:
 	URogueSaveSubsystem* GetSaveSS();
 
@@ -42,4 +49,11 @@ private:
 private:
 	URogueSaveSubsystem* SaveSS;
 	int32 ExpectedPlayerCount = 0;
+
+	float HP_Percent;
+
+	float Health;
+	float Mana;
+
+	TMap<int32, float> PlayerHPPercentById;
 };

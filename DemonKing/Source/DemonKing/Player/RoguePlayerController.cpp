@@ -12,6 +12,10 @@
 #include "DemonKing/CCharacter/RogueCharacterBase.h"
 #include "RoguePlayerController.h"
 #include "DemonKing/SkillComponent/CKnightSkillComponent.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputAction.h"
+#include "InputMappingContext.h"
 
 
 ARoguePlayerController::ARoguePlayerController()
@@ -106,6 +110,24 @@ void ARoguePlayerController::SetupInputComponent()
 	InputComponent->BindAction("SkillQ", IE_Released, this, &ARoguePlayerController::OnQDePressed);
 
 	InputComponent->BindAction("SkillShift", IE_Pressed, this, & ARoguePlayerController::OnShiftPressed);
+
+	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(InputComponent))
+	{
+		if (PauseMenuAction)
+		{
+			EnhancedInput->BindAction(PauseMenuAction, ETriggerEvent::Started, this, &ARoguePlayerController::OnPauseMenuPressed);
+		}
+	}
+
+	if (ULocalPlayer* LocalPlayer = GetLocalPlayer())
+	{
+		UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+
+		if (Subsystem && PauseMenuMappingContext)
+		{
+			Subsystem->AddMappingContext(PauseMenuMappingContext, 0);
+		}
+	}
 
 
 }
@@ -248,6 +270,45 @@ void ARoguePlayerController::OnShiftPressed()
 
 	//대쉬 중인지 판단하는 변수 만들어서 wasd입력값 못받게 하기.
 	//끝나면 노티파이로 호출해서 다시 true로 만들기. 간단하게.
+}
+
+void ARoguePlayerController::OnPauseMenuPressed()
+{
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	ARogueHUD* RogueHUD = Cast<ARogueHUD>(GetHUD());
+
+	if (!IsValid(RogueHUD))
+	{
+		return;
+	}
+	
+	if (RogueHUD->GetOnOFF() == false) // 닫혀있다.
+	{
+		
+		RogueHUD->ShowPauseMenuWidget();
+		bShowMouseCursor = true;
+		SetInputMode(FInputModeGameAndUI());
+		RogueHUD->SetOnOFF(true);
+		return;
+	}
+
+	if (RogueHUD->GetOnOFF() == true)
+	{
+		
+		RogueHUD->ShowPauseMenuWidget();
+		bShowMouseCursor = true;
+		SetInputMode(FInputModeGameAndUI());
+		RogueHUD->SetOnOFF(false);
+		return;
+	}
+
+	
+
+
 }
 
 void ARoguePlayerController::ApplyMode(ETypeControll controll)

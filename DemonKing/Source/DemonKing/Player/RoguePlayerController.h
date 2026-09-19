@@ -71,6 +71,16 @@ private:
 	void OnEDePressed();
 
 	void OnShiftPressed();
+
+	void OnPauseMenuPressed();
+
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<class UInputAction> PauseMenuAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<class UInputMappingContext> PauseMenuMappingContext;
 	
 
 

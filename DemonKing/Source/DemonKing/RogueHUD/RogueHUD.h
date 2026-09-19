@@ -18,6 +18,10 @@ public:
 	void ShowMainMenuWidget();
 	void ShowStartGameWidget();
 	void ShowSkillBarHUD();
+	void ShowPauseMenuWidget();
+
+	FORCEINLINE void SetOnOFF(bool a) { OnOFF = a; }
+	FORCEINLINE bool GetOnOFF() { return OnOFF; }
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
@@ -28,6 +32,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> SkillBarWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> PauseMenuWidgetClass;
 private:
 	UPROPERTY()
 	UUserWidget* MainMenuWidget;
@@ -37,4 +44,10 @@ private:
 
 	UPROPERTY()
 	UUserWidget* SkillBarWidget;
+
+	UPROPERTY()
+	UUserWidget* PauseMenuWidget;
+
+private:
+	bool OnOFF = false;
 };

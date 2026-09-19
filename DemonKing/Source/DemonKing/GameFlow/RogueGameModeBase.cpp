@@ -68,7 +68,7 @@ void ARogueGameModeBase::StartRun()
     int32 RunSeed = 0;// 안쓰는거
     int32 StageSeed = 0;//안쓰는거
 
-    const bool bResumed = (SaveSS) ? SaveSS->LoadOrStartNewRun(PC, StageId, StageMapIndex, RunSeed, StageSeed) : false;
+    //const bool bResumed = (SaveSS) ? SaveSS->LoadOrStartNewRun(PC, StageId, StageMapIndex, RunSeed, StageSeed) : false;
 
     GS->ResetRunState();
     StageStep_Runtime = 0;
@@ -83,9 +83,9 @@ void ARogueGameModeBase::StartRun()
 
 
   
-    UE_LOG(LogTemp, Warning, TEXT("StartRun: %s Stage=%s MapIndex=%d RunSeed=%d StageSeed=%d"),
-        bResumed ? TEXT("RESUME") : TEXT("NEW"),
-        *StageId.ToString(), StageMapIndex, RunSeed, StageSeed);
+    //UE_LOG(LogTemp, Warning, TEXT("StartRun: %s Stage=%s MapIndex=%d RunSeed=%d StageSeed=%d"),
+    //    bResumed ? TEXT("RESUME") : TEXT("NEW"),
+    //    *StageId.ToString(), StageMapIndex, RunSeed, StageSeed);
 
     int32 ExpectedPlayerNum = GetNumPlayers();
 
