@@ -5,9 +5,10 @@
 #include "DemonKing/GameFlow/MyGameInstance.h"
 #include "CCharacterStatComponent.generated.h"
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+
 
 class DEMONKING_API UCCharacterStatComponent : public UActorComponent
 {
@@ -175,9 +176,21 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stat|Modifier")
 	float ArmorBonusRateSum = 0.0f;
 
+
+
+public:
+	void InitializeStatsAfterPossession(int32 PlayerId);
+
+
+
+private:
+	UMyGameInstance* GetInstance() const;
+
+
 private:
 	bool isDead = false;
 	bool bCanBeDamaged = true;
+	bool bStatsInitialized = false;
 
 	static constexpr float ArmorK = 200.0f;
 	static constexpr float MaxDamageReduction = 0.8f;

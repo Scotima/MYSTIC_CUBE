@@ -1,6 +1,8 @@
 #include "DemonKing/GameFlow/MyGameInstance.h"
 #include "DemonKing/SaveGame/RogueSaveSubsystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/Pawn.h"
+#include "DemonKing/GameFlow/RoguePlayerState.h"
 
 void UMyGameInstance::RequestContinueRun()
 {
@@ -39,6 +41,45 @@ void UMyGameInstance::RequestSaveAndLeaveToLobby()
 void UMyGameInstance::SetExpectedStagePlayerCount(int32 PlayerNum)
 {
 	ExpectedPlayerCount = PlayerNum;
+}
+
+void UMyGameInstance::SetHP_Percent(APawn* PlayerPawn,float currentHP)
+{
+	if (!IsValid(PlayerPawn) || !PlayerPawn->HasAuthority())
+	{
+		return;
+	}
+
+	HP_Percent = currentHP;
+
+	ARoguePlayerState* PS = Cast<ARoguePlayerState>(PlayerPawn->GetPlayerState());
+
+	if (!PS)
+	{
+		return;
+	}
+
+	const int32 PlayerId = PS->GetPlayerId();
+	const float HpPercent = FMath::Clamp(currentHP, 0.0f, 1.0f);
+
+	PlayerHPPercentById.Add(PlayerId, HpPercent);
+
+	
+	PS->SetPlayerState_HP(HP_Percent);
+}
+
+bool UMyGameInstance::TryGetSavedHPPercent(int32 PlayerId, float& OutHPPercent) const
+{
+	const float* SavedHPPercent = PlayerHPPercentById.Find(PlayerId);
+
+	if (SavedHPPercent == nullptr)
+	{
+		return false;
+	}
+
+	OutHPPercent = *SavedHPPercent;
+
+	return true;
 }
 
 URogueSaveSubsystem* UMyGameInstance::GetSaveSS()

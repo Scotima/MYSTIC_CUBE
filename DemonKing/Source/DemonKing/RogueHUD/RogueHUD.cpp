@@ -20,6 +20,8 @@ void ARogueHUD::ClearAllUI()
 		SkillBarWidget->RemoveFromParent();
 		SkillBarWidget = nullptr;
 	}
+
+
 }
 
 void ARogueHUD::ShowMainMenuWidget()
@@ -73,4 +75,39 @@ void ARogueHUD::ShowSkillBarHUD()
 	}
 
 
+}
+
+void ARogueHUD::ShowPauseMenuWidget()
+{
+	
+
+	APlayerController* PC = GetOwningPlayerController();
+
+	if (!PC || !PC->IsLocalController() || !PauseMenuWidgetClass)
+	{
+		return;
+	}
+
+	if (OnOFF == true)
+	{
+		if (IsValid(PauseMenuWidget))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ARogueHUD OnOFF = %d"), OnOFF);
+			PauseMenuWidget->RemoveFromParent();
+			PauseMenuWidget = nullptr;
+			return;
+		}
+	}
+
+
+	
+
+	PauseMenuWidget = CreateWidget<UUserWidget>(PC, PauseMenuWidgetClass);
+
+
+
+	if (IsValid(PauseMenuWidget) && !PauseMenuWidget->IsInViewport())
+	{
+		PauseMenuWidget->AddToViewport(100);
+	}
 }

@@ -17,17 +17,6 @@ ARogueStartGameMode::ARogueStartGameMode()
 
 void ARogueStartGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
-	
-}
-
-void ARogueStartGameMode::BeginPlay()
-{
-
-}
-
-
-void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
-{
 	UE_LOG(LogTemp, Warning, TEXT("[ARogueStartGameMode::HandleStartingNewPlayer_Implementation]"));
 
 
@@ -37,7 +26,7 @@ void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 
 	PendingPlayerController.AddUnique(NewPlayer);
-	
+
 
 	// 이미 타이머가 돌고 있지 않으면 시작
 	if (!GetWorldTimerManager().IsTimerActive(SpawnRetryTimerHandle))
@@ -51,6 +40,7 @@ void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
 		);
 	}
 }
+
 
 void ARogueStartGameMode::Logout(AController* Exiting)
 {
@@ -90,12 +80,6 @@ void ARogueStartGameMode::InitGameState()
 }
 
 
-
-
-void ARogueStartGameMode::PostLogin(APlayerController* NewPlayer)
-{
-	
-}
 
 void ARogueStartGameMode::TrySpawnPendingPlayer()
 {
@@ -236,6 +220,9 @@ TSubclassOf<APawn> ARogueStartGameMode::GetSelectedPawnClass() const
 	case EPlayerClassType::Archer:
 		UE_LOG(LogTemp, Warning, TEXT("Selected class: Archer"));
 		return ArcherPawnClass;
+	case EPlayerClassType::Assasin:
+		return AssasinPawnClass;
+
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Fallback to WarriorPawnClass"));

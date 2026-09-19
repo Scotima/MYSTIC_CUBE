@@ -67,10 +67,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stat|Base")
 	float MaxHp = 100.0f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stat|Base")
-	float CurrentHp = 100.0f;
-private:
-	float MaxHp;
+protected:
+
 
 	UPROPERTY(ReplicatedUsing = OnRep_Current)
 	float CurrentHp;
