@@ -56,7 +56,7 @@ protected:
 	FTimerHandle SpawnRetryTimerHandle;
 
 protected:
-	TSubclassOf<APawn> GetSelectedPawnClass() const;
+	TSubclassOf<APawn> GetSelectedPawnClass(AController* NewPlayer) const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Classes")
 	TSubclassOf<APawn> WarriorPawnClass;

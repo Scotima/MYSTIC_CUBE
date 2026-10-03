@@ -9,6 +9,7 @@
 #include "GameFramework/PlayerController.h"
 #include "TimerManager.h"
 #include "DemonKing/GameFlow/RogueGameState.h"
+#include "GameFramework/PlayerState.h"
 
 ARogueStartGameMode::ARogueStartGameMode()
 {
@@ -174,7 +175,7 @@ APawn* ARogueStartGameMode::SpawnDefaultPawnAtTransform_Implementation(
 	}
 
 
-	TSubclassOf<APawn> SelectedPawnClass = GetSelectedPawnClass();
+	TSubclassOf<APawn> SelectedPawnClass = GetSelectedPawnClass(NewPlayer);
 
 	if (!SelectedPawnClass)
 	{
@@ -198,16 +199,44 @@ APawn* ARogueStartGameMode::SpawnDefaultPawnAtTransform_Implementation(
 	return SpawnedPawn;
 }
 
-TSubclassOf<APawn> ARogueStartGameMode::GetSelectedPawnClass() const
+TSubclassOf<APawn> ARogueStartGameMode::GetSelectedPawnClass(AController* NewPlayer) const
 {
+	if (!IsValid(NewPlayer))
+	{
+		return WarriorPawnClass;
+	}
+
+	const APlayerState* PS = NewPlayer->GetPlayerState<APlayerState>();
 	const UMyGameInstance* GI = Cast<UMyGameInstance>(GetGameInstance());
-	if (!GI)
+
+
+
+	if (!GI || !PS)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("GI is null, returning WarriorPawnClass"));
 		return WarriorPawnClass;
 	}
 
-	switch (GI->SelectedPlayerClass)
+	const FUniqueNetIdRepl& UniqueId = PS->GetUniqueId();
+
+	if (!UniqueId.IsValid())
+	{
+		return WarriorPawnClass;
+	}
+
+	const FString PlayerKey = UniqueId.ToString();
+
+	EPlayerClassType PlayerClass;
+
+	if (!GI->TryGetPlayerClassById(PlayerKey, PlayerClass))
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("Class lookup failed: PlayerId=%d"),
+			PS->GetPlayerId())
+		return WarriorPawnClass;
+	} 
+
+	switch (PlayerClass)
 	{
 	case EPlayerClassType::Warrior:
 		UE_LOG(LogTemp, Warning, TEXT("Selected class: Warrior"));

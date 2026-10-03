@@ -16,6 +16,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "GameFramework/PlayerState.h"
 
 
 ARoguePlayerController::ARoguePlayerController()
@@ -91,6 +92,40 @@ void ARoguePlayerController::AfterChangeWorldMap(UWorld* LoadedWorld)
 	UpdateWorldName();
 }
 
+
+void ARoguePlayerController::Server_SelectPlayerClass_Implementation(EPlayerClassType PlayerClass)
+{
+	//BP에서 호출하기.
+	APlayerState* PS = GetPlayerState<APlayerState>();
+
+	UMyGameInstance* GI = Cast<UMyGameInstance>(GetGameInstance());
+
+	if (!IsValid(PS) || !IsValid(GI))
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[ClassSelect] Failed: PS=%s, GI=%s"),
+			IsValid(PS) ? TEXT("Valid") : TEXT("Invalid"),
+			IsValid(GI) ? TEXT("Valid") : TEXT("Invalid"));
+		return;
+	}
+
+	const FUniqueNetIdRepl& UniqueId = PS->GetUniqueId();
+
+	if (!UniqueId.IsValid())
+	{
+		return;
+	}
+
+	const FString PlayerKey = UniqueId.ToString();
+
+
+	GI->SetPlayerClassById(PlayerKey, PlayerClass);
+	UE_LOG(LogTemp, Warning,
+		TEXT("[ClassSelect] Save called: GI=%p, PlayerId=%d, Class=%d"),
+		static_cast<const void*>(GI),
+		PS->GetPlayerId(),
+		static_cast<int32>(PlayerClass));
+}
 
 void ARoguePlayerController::SetupInputComponent()
 {

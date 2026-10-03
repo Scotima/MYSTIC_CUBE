@@ -7,6 +7,7 @@
 #include "Components/Button.h"
 #include "DemonKing/Online/MySessionSubsystem.h"
 #include "Blueprint/UserWidget.h"
+#include "DemonKing/GameFlow/RogueGameState.h"
 
 
 void ULobbyMainWidget::NativeConstruct()
@@ -14,6 +15,16 @@ void ULobbyMainWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	mySubsystem = nullptr;
+
+
+
+	ARogueGameState* GS = GetWorld() ? GetWorld()->GetGameState<ARogueGameState>() : nullptr;
+
+	if (GS)
+	{
+		GS->OnLobbyPlayerListChanged.RemoveAll(this);
+		GS->OnLobbyPlayerListChanged.AddUObject(this, &ULobbyMainWidget::RefreshPlayerList);
+	}
 
 	RefreshPlayerList();
 
@@ -25,6 +36,10 @@ void ULobbyMainWidget::NativeConstruct()
 void ULobbyMainWidget::RefreshPlayerList()
 {
 	AGameStateBase* GSB = GetWorld() ? GetWorld()->GetGameState() : nullptr;
+
+	UE_LOG(LogTemp, Warning, TEXT("[Lobby] Client=%d, PlayerCount=%d"),
+		GetWorld() && GetWorld()->GetNetMode() == NM_Client,
+		GSB ? GSB->PlayerArray.Num() : -1);
 
 	if (!GSB)
 	{
@@ -50,6 +65,7 @@ void ULobbyMainWidget::RefreshPlayerList()
 
 		if (!RoguePS)
 		{
+		
 			UE_LOG(LogTemp, Warning, TEXT("[ULobbyMainWidget::RefreshPlayerList] !RoguePS"));
 			continue;
 		}

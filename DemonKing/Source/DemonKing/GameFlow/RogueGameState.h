@@ -18,12 +18,15 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStageMapIndexChanged, int32, NewI
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRunSeedChanged, int32, NewSeed);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStageSeedChanged, int32, NewSeed);
 
+DECLARE_MULTICAST_DELEGATE(FOnLobbyPlayerListChanged);
+
 UCLASS()
 class DEMONKING_API ARogueGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 
-
+protected:
+	virtual void AddPlayerState(APlayerState* PlayerState) override;
 
 public:
 
@@ -164,5 +167,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Run")
 	FOnStageSeedChanged OnStageSeedChanged;
+
+	FOnLobbyPlayerListChanged OnLobbyPlayerListChanged;
 	
 };
