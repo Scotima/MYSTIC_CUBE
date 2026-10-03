@@ -52,6 +52,14 @@ public:
 	void Server_SetLobbyNickName(const FString& newname);
 
 
+
+
+	UFUNCTION(BlueprintCallable, Category = "Input|UI")
+	void SetItemSelectionOpen(bool bOpen, UUserWidget* Widget);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Player")
+	void Server_SelectPlayerClass(EPlayerClassType PlayerClass);
+
 	UFUNCTION(BlueprintCallable, Category = "Input|UI")
 	void SetItemSelectionOpen(bool bOpen, UUserWidget* Widget);
 
