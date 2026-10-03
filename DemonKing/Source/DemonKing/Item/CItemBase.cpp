@@ -188,69 +188,52 @@ TArray<FItemOptionData> ACItemBase::GetDefaultItemPool() const
 {
 	TArray<FItemOptionData> Pool;
 
-	Pool.Add(MakeItemOption(
-		TEXT("AttackPower_01"),
-		TEXT("공격력 증가"),
-		TEXT("공격력이 10% 증가합니다."),
-		EItemOptionType::AttackPower,
-		EItemRarity::Common,
-		0.10f,
-		100
-	));
+	// AttackPower
+	Pool.Add(MakeItemOption(TEXT("AttackPower_Common"), TEXT("공격력 증가"), TEXT("공격력이 10% 증가합니다."), EItemOptionType::AttackPower, EItemRarity::Common, 0.10f, 100));
+	Pool.Add(MakeItemOption(TEXT("AttackPower_Rare"), TEXT("강한 공격력 증가"), TEXT("공격력이 18% 증가합니다."), EItemOptionType::AttackPower, EItemRarity::Rare, 0.18f, 45));
+	Pool.Add(MakeItemOption(TEXT("AttackPower_Epic"), TEXT("압도적인 공격력 증가"), TEXT("공격력이 30% 증가합니다."), EItemOptionType::AttackPower, EItemRarity::Epic, 0.30f, 15));
 
-	Pool.Add(MakeItemOption(
-		TEXT("MaxHp_01"),
-		TEXT("최대 체력 증가"),
-		TEXT("최대 체력이 50 증가합니다."),
-		EItemOptionType::MaxHp,
-		EItemRarity::Common,
-		50.0f,
-		100
-	));
+	// MaxHp
+	Pool.Add(MakeItemOption(TEXT("MaxHp_Common"), TEXT("최대 체력 증가"), TEXT("최대 체력이 50 증가합니다."), EItemOptionType::MaxHp, EItemRarity::Common, 50.0f, 100));
+	Pool.Add(MakeItemOption(TEXT("MaxHp_Rare"), TEXT("강한 최대 체력 증가"), TEXT("최대 체력이 100 증가합니다."), EItemOptionType::MaxHp, EItemRarity::Rare, 100.0f, 45));
+	Pool.Add(MakeItemOption(TEXT("MaxHp_Epic"), TEXT("압도적인 최대 체력 증가"), TEXT("최대 체력이 180 증가합니다."), EItemOptionType::MaxHp, EItemRarity::Epic, 180.0f, 15));
 
-	Pool.Add(MakeItemOption(
-		TEXT("Armor_01"),
-		TEXT("방어력 증가"),
-		TEXT("방어력이 15% 증가합니다."),
-		EItemOptionType::Armor,
-		EItemRarity::Common,
-		0.15f,
-		100
-	));
+	// Armor
+	Pool.Add(MakeItemOption(TEXT("Armor_Common"), TEXT("방어력 증가"), TEXT("방어력이 15% 증가합니다."), EItemOptionType::Armor, EItemRarity::Common, 0.15f, 100));
+	Pool.Add(MakeItemOption(TEXT("Armor_Rare"), TEXT("강한 방어력 증가"), TEXT("방어력이 25% 증가합니다."), EItemOptionType::Armor, EItemRarity::Rare, 0.25f, 45));
+	Pool.Add(MakeItemOption(TEXT("Armor_Epic"), TEXT("압도적인 방어력 증가"), TEXT("방어력이 40% 증가합니다."), EItemOptionType::Armor, EItemRarity::Epic, 0.40f, 15));
 
-	Pool.Add(MakeItemOption(
-		TEXT("AttackSpeed_01"),
-		TEXT("공격 속도 증가"),
-		TEXT("공격 속도가 8% 증가합니다."),
-		EItemOptionType::AttackSpeed,
-		EItemRarity::Common,
-		0.08f,
-		100
-	));
+	// AttackSpeed
+	Pool.Add(MakeItemOption(TEXT("AttackSpeed_Common"), TEXT("공격 속도 증가"), TEXT("공격 속도가 8% 증가합니다."), EItemOptionType::AttackSpeed, EItemRarity::Common, 0.08f, 100));
+	Pool.Add(MakeItemOption(TEXT("AttackSpeed_Rare"), TEXT("강한 공격 속도 증가"), TEXT("공격 속도가 15% 증가합니다."), EItemOptionType::AttackSpeed, EItemRarity::Rare, 0.15f, 45));
+	Pool.Add(MakeItemOption(TEXT("AttackSpeed_Epic"), TEXT("압도적인 공격 속도 증가"), TEXT("공격 속도가 25% 증가합니다."), EItemOptionType::AttackSpeed, EItemRarity::Epic, 0.25f, 15));
 
-	Pool.Add(MakeItemOption(
-		TEXT("CritChance_01"),
-		TEXT("치명타 확률 증가"),
-		TEXT("치명타 확률이 5% 증가합니다."),
-		EItemOptionType::CritChance,
-		EItemRarity::Rare,
-		0.05f,
-		60
-	));
+	// CritChance
+	Pool.Add(MakeItemOption(TEXT("CritChance_Common"), TEXT("치명타 확률 증가"), TEXT("치명타 확률이 4% 증가합니다."), EItemOptionType::CritChance, EItemRarity::Common, 0.04f, 80));
+	Pool.Add(MakeItemOption(TEXT("CritChance_Rare"), TEXT("강한 치명타 확률 증가"), TEXT("치명타 확률이 8% 증가합니다."), EItemOptionType::CritChance, EItemRarity::Rare, 0.08f, 35));
+	Pool.Add(MakeItemOption(TEXT("CritChance_Epic"), TEXT("압도적인 치명타 확률 증가"), TEXT("치명타 확률이 12% 증가합니다."), EItemOptionType::CritChance, EItemRarity::Epic, 0.12f, 12));
 
-	Pool.Add(MakeItemOption(
-		TEXT("SkillDamage_01"),
-		TEXT("스킬 피해 증가"),
-		TEXT("스킬 피해량이 12% 증가합니다."),
-		EItemOptionType::SkillDamage,
-		EItemRarity::Rare,
-		0.12f,
-		60
-	));
+	// CritDamage
+	Pool.Add(MakeItemOption(TEXT("CritDamage_Common"), TEXT("치명타 피해 증가"), TEXT("치명타 피해량이 15% 증가합니다."), EItemOptionType::CritDamage, EItemRarity::Common, 0.15f, 80));
+	Pool.Add(MakeItemOption(TEXT("CritDamage_Rare"), TEXT("강한 치명타 피해 증가"), TEXT("치명타 피해량이 30% 증가합니다."), EItemOptionType::CritDamage, EItemRarity::Rare, 0.30f, 35));
+	Pool.Add(MakeItemOption(TEXT("CritDamage_Epic"), TEXT("압도적인 치명타 피해 증가"), TEXT("치명타 피해량이 50% 증가합니다."), EItemOptionType::CritDamage, EItemRarity::Epic, 0.50f, 12));
+
+	// SkillDamage
+	Pool.Add(MakeItemOption(TEXT("SkillDamage_Common"), TEXT("스킬 피해 증가"), TEXT("스킬 피해량이 10% 증가합니다."), EItemOptionType::SkillDamage, EItemRarity::Common, 0.10f, 100));
+	Pool.Add(MakeItemOption(TEXT("SkillDamage_Rare"), TEXT("강한 스킬 피해 증가"), TEXT("스킬 피해량이 18% 증가합니다."), EItemOptionType::SkillDamage, EItemRarity::Rare, 0.18f, 45));
+	Pool.Add(MakeItemOption(TEXT("SkillDamage_Epic"), TEXT("압도적인 스킬 피해 증가"), TEXT("스킬 피해량이 30% 증가합니다."), EItemOptionType::SkillDamage, EItemRarity::Epic, 0.30f, 15));
+
+	// SkillHaste
+	Pool.Add(MakeItemOption(TEXT("SkillHaste_Common"), TEXT("스킬 가속 증가"), TEXT("스킬 가속이 10 증가합니다."), EItemOptionType::SkillHaste, EItemRarity::Common, 10.0f, 80));
+	Pool.Add(MakeItemOption(TEXT("SkillHaste_Rare"), TEXT("강한 스킬 가속 증가"), TEXT("스킬 가속이 20 증가합니다."), EItemOptionType::SkillHaste, EItemRarity::Rare, 20.0f, 35));
+	Pool.Add(MakeItemOption(TEXT("SkillHaste_Epic"), TEXT("압도적인 스킬 가속 증가"), TEXT("스킬 가속이 35 증가합니다."), EItemOptionType::SkillHaste, EItemRarity::Epic, 35.0f, 12));
+
+	// DamageAmp
+	Pool.Add(MakeItemOption(TEXT("DamageAmp_Rare"), TEXT("피해 증폭"), TEXT("모든 피해량이 8% 증가합니다."), EItemOptionType::DamageAmp, EItemRarity::Rare, 0.08f, 25));
+	Pool.Add(MakeItemOption(TEXT("DamageAmp_Epic"), TEXT("강한 피해 증폭"), TEXT("모든 피해량이 15% 증가합니다."), EItemOptionType::DamageAmp, EItemRarity::Epic, 0.15f, 8));
 
 	return Pool;
 }
-
 TArray<FItemOptionData> ACItemBase::RollItemOptions(int32 OptionCount) const
 {
 	TArray<FItemOptionData> Pool = GetDefaultItemPool();
@@ -267,35 +250,41 @@ TArray<FItemOptionData> ACItemBase::RollItemOptions(int32 OptionCount) const
 			TotalWeight += FMath::Max(0, Option.Weight);
 		}
 
-		if (TotalWeight <= 0)
-		{
-			const int32 RandomIndex = FMath::RandRange(0, Pool.Num() - 1);
-			Result.Add(Pool[RandomIndex]);
-			Pool.RemoveAt(RandomIndex);
-			continue;
-		}
-
-		int32 Roll = FMath::RandRange(1, TotalWeight);
 		int32 SelectedIndex = 0;
 
-		for (int32 Index = 0; Index < Pool.Num(); ++Index)
+		if (TotalWeight <= 0)
 		{
-			Roll -= FMath::Max(0, Pool[Index].Weight);
+			SelectedIndex = FMath::RandRange(0, Pool.Num() - 1);
+		}
+		else
+		{
+			int32 Roll = FMath::RandRange(1, TotalWeight);
 
-			if (Roll <= 0)
+			for (int32 Index = 0; Index < Pool.Num(); ++Index)
 			{
-				SelectedIndex = Index;
-				break;
+				Roll -= FMath::Max(0, Pool[Index].Weight);
+
+				if (Roll <= 0)
+				{
+					SelectedIndex = Index;
+					break;
+				}
 			}
 		}
 
-		Result.Add(Pool[SelectedIndex]);
-		Pool.RemoveAt(SelectedIndex);
+		const FItemOptionData SelectedOption = Pool[SelectedIndex];
+		const EItemOptionType SelectedType = SelectedOption.OptionType;
+
+		Result.Add(SelectedOption);
+
+		Pool.RemoveAll([SelectedType](const FItemOptionData& Option)
+			{
+				return Option.OptionType == SelectedType;
+			});
 	}
 
 	return Result;
 }
-
 
 void ACItemBase::DebugTryStartItemSelection()
 {
