@@ -96,6 +96,8 @@ void ARoguePlayerController::SetupInputComponent()
 {
 
 	Super::SetupInputComponent();
+	InputComponent->BindAxis("Turn", this, &ARoguePlayerController::Turn);
+	InputComponent->BindAxis("LookUp", this, &ARoguePlayerController::LookUp);
 	InputComponent->BindAxis("MoveForward", this, &ARoguePlayerController::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &ARoguePlayerController::MoveRight);
 
@@ -136,6 +138,11 @@ void ARoguePlayerController::SetupInputComponent()
 
 void ARoguePlayerController::MoveForward(float value)
 {
+	if (!CanUseGameplayInput())
+	{
+		return;
+	}
+
 	APawn* p = GetPawn();
 	FRotator ControlRot = FRotator(0, GetControlRotation().Yaw, 0);
 	FVector Direction = FQuat(ControlRot).GetForwardVector().GetSafeNormal2D();
@@ -150,6 +157,10 @@ void ARoguePlayerController::MoveForward(float value)
 
 void ARoguePlayerController::MoveRight(float value)
 {
+	if (!CanUseGameplayInput())
+	{
+		return;
+	}
 
 	APawn* p = GetPawn();
 
@@ -165,6 +176,11 @@ void ARoguePlayerController::MoveRight(float value)
 
 void ARoguePlayerController::OnJumpPressed()
 {
+	if (!CanUseGameplayInput())
+	{
+		return;
+	}
+
 	ACharacter* C = Cast<ACharacter>(GetPawn());
 	if (!C)
 	{
@@ -186,7 +202,11 @@ void ARoguePlayerController::OnJumpReleased()
 
 void ARoguePlayerController::OnMouseLeftClick()
 {
-	LookMouseCursor();
+	if (!CanUseGameplayInput())
+	{
+		return;
+	}
+
 	characterBase = Cast<ARogueCharacterBase>(GetPawn());
 	UE_LOG(LogTemp, Warning, TEXT("[ARoguePlayerController::OnMouseLeftClick]"));
 	if (!characterBase)
@@ -212,7 +232,11 @@ void ARoguePlayerController::OnMouseLeftReleased()
 }
 void ARoguePlayerController::OnQPressed()
 {
-	LookMouseCursor();
+	if (!CanUseGameplayInput())
+	{
+		return;
+	}
+
 	characterBase = Cast<ARogueCharacterBase>(GetPawn());
 
 	if (!characterBase)
@@ -236,7 +260,11 @@ void ARoguePlayerController::OnQDePressed()
 
 void ARoguePlayerController::OnEPressed()
 {
-	LookMouseCursor();
+	if (!CanUseGameplayInput())
+	{
+		return;
+	}
+
 	characterBase = Cast<ARogueCharacterBase>(GetPawn());
 	if (!characterBase)
 	{
@@ -259,7 +287,11 @@ void ARoguePlayerController::OnEDePressed()
 
 void ARoguePlayerController::OnShiftPressed()
 {
-	LookMouseCursor();
+	if (!CanUseGameplayInput())
+	{
+		return;
+	}
+
 	characterBase = Cast<ARogueCharacterBase>(GetPawn());
 	if(!characterBase)
 	{
@@ -274,41 +306,21 @@ void ARoguePlayerController::OnShiftPressed()
 
 void ARoguePlayerController::OnPauseMenuPressed()
 {
-	if (!IsLocalController())
+	if (!IsLocalController() || Mode != ETypeControll::Game)
 	{
 		return;
 	}
 
 	ARogueHUD* RogueHUD = Cast<ARogueHUD>(GetHUD());
-
 	if (!IsValid(RogueHUD))
 	{
 		return;
 	}
-	
-	if (RogueHUD->GetOnOFF() == false) // ´ÝÇôÀÖ´Ù.
-	{
-		
-		RogueHUD->ShowPauseMenuWidget();
-		bShowMouseCursor = true;
-		SetInputMode(FInputModeGameAndUI());
-		RogueHUD->SetOnOFF(true);
-		return;
-	}
 
-	if (RogueHUD->GetOnOFF() == true)
-	{
-		
-		RogueHUD->ShowPauseMenuWidget();
-		bShowMouseCursor = true;
-		SetInputMode(FInputModeGameAndUI());
-		RogueHUD->SetOnOFF(false);
-		return;
-	}
-
-	
-
-
+	RogueHUD->ShowPauseMenuWidget();
+	UUserWidget* PauseWidget = RogueHUD->GetPauseMenuWidget();
+	RogueHUD->SetOnOFF(IsValid(PauseWidget) && PauseWidget->IsInViewport());
+	RefreshCursorInputMode();
 }
 
 void ARoguePlayerController::ApplyMode(ETypeControll controll)
@@ -323,8 +335,7 @@ void ARoguePlayerController::ApplyMode(ETypeControll controll)
 	switch (Mode) {
 	case ETypeControll::Main:
 	{
-		FInputModeUIOnly inputmode;
-		SetInputMode(inputmode);
+		
 		if (ARogueHUD* hud = GetHUD<ARogueHUD>())
 		{
 			hud->ShowMainMenuWidget();
@@ -349,9 +360,6 @@ void ARoguePlayerController::ApplyMode(ETypeControll controll)
 
 	case ETypeControll::Game:
 	{
-		FInputModeGameOnly InputMode;
-		InputMode.SetConsumeCaptureMouseDown(false); //This means it will not "consume" the click input used to capture the mouse. Setting this to `false` is useful, for example, when you want a click on the game screen to both set the focus and trigger an attack or interaction.
-		SetInputMode(InputMode);
 
 		if (ARogueHUD* hud = GetHUD<ARogueHUD>())
 		{
@@ -364,8 +372,9 @@ void ARoguePlayerController::ApplyMode(ETypeControll controll)
 	default:
 		break;
 	}
-	
+	RefreshCursorInputMode();
 }
+
 
 void ARoguePlayerController::UpdateWorldName()
 {
@@ -479,5 +488,104 @@ void ARoguePlayerController::Server_RequestStartRun_Implementation()
 	if (ARogueGameModeBase* GM = GetWorld()->GetAuthGameMode<ARogueGameModeBase>())
 	{
 		GM->StartRun();
+	}
+}
+
+bool ARoguePlayerController::CanUseGameplayInput() const
+{
+	ARogueHUD* RogueHUD = Cast<ARogueHUD>(GetHUD());
+	const bool bPauseMenuOpen = RogueHUD && RogueHUD->GetOnOFF();
+
+	return IsLocalController()
+		&& Mode == ETypeControll::Game
+		&& !bItemSelectionOpen
+		&& !bPauseMenuOpen;
+}
+
+void ARoguePlayerController::SetItemSelectionOpen(bool bOpen, UUserWidget* Widget)
+{
+	if (!IsLocalController() || (bOpen && !IsValid(Widget)))
+	{
+		return;
+	}
+
+	if (!bOpen && ItemSelectionWidget.Get() != Widget)
+	{
+		return;
+	}
+
+	bItemSelectionOpen = bOpen;
+	ItemSelectionWidget = bOpen ? Widget : nullptr;
+	RefreshCursorInputMode();
+}
+
+void ARoguePlayerController::RefreshCursorInputMode()
+{
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	ARogueHUD* RogueHUD = Cast<ARogueHUD>(GetHUD());
+	const bool bPauseMenuOpen = RogueHUD && RogueHUD->GetOnOFF();
+	const bool bShowUI = Mode != ETypeControll::Game
+		|| bItemSelectionOpen || bPauseMenuOpen;
+
+	bShowMouseCursor = bShowUI;
+	bEnableClickEvents = bShowUI;
+	bEnableMouseOverEvents = bShowUI;
+
+	if (bShowUI)
+	{
+		if (ACharacter* PawnCharacter = Cast<ACharacter>(GetPawn()))
+		{
+			PawnCharacter->StopJumping();
+		}
+		if (ARogueCharacterBase* RogueCharacter = Cast<ARogueCharacterBase>(GetPawn()))
+		{
+			RogueCharacter->SetUsingSkill(false);
+			RogueCharacter->InputSkillLeftMouseReleased();
+		}
+	}
+
+	if (Mode != ETypeControll::Game)
+	{
+		SetInputMode(FInputModeUIOnly());
+	}
+	else if (bShowUI)
+	{
+		UUserWidget* FocusWidget = bPauseMenuOpen
+			? RogueHUD->GetPauseMenuWidget() : ItemSelectionWidget.Get();
+
+		FInputModeGameAndUI InputMode;
+		InputMode.SetHideCursorDuringCapture(false);
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		if (IsValid(FocusWidget))
+		{
+			InputMode.SetWidgetToFocus(FocusWidget->TakeWidget());
+		}
+		SetInputMode(InputMode);
+	}
+	else
+	{
+		FInputModeGameOnly InputMode;
+		InputMode.SetConsumeCaptureMouseDown(true);
+		SetInputMode(InputMode);
+	}
+}
+
+void ARoguePlayerController::Turn(float Value)
+{
+	if (CanUseGameplayInput())
+	{
+		AddYawInput(Value);
+	}
+}
+
+void ARoguePlayerController::LookUp(float Value)
+{
+	if (CanUseGameplayInput())
+	{
+		AddPitchInput(Value);
 	}
 }

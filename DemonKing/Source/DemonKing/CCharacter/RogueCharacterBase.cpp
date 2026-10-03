@@ -8,22 +8,32 @@
 #include "DemonKing/GameFlow/RoguePlayerState.h"
 #include "DemonKing/CWidget/CPlayerHPWidgetComponent.h"
 #include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 
 
 ARogueCharacterBase::ARogueCharacterBase()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	OcclusionSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	OcclusionSpringArm->SetupAttachment(RootComponent);
-
-	OcclusionSpringArm->TargetArmLength = 600.f;
-	OcclusionSpringArm->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
-	OcclusionSpringArm->bUsePawnControlRotation = false;
+	OcclusionSpringArm->TargetArmLength = 380.f;
+	OcclusionSpringArm->TargetOffset = FVector(0.f, 0.f, 60.f);
+	OcclusionSpringArm->SocketOffset = FVector::ZeroVector;
+	OcclusionSpringArm->SetRelativeRotation(FRotator::ZeroRotator);
+	OcclusionSpringArm->bUsePawnControlRotation = true;
+	OcclusionSpringArm->bInheritPitch = true;
+	OcclusionSpringArm->bInheritYaw = true;
+	OcclusionSpringArm->bInheritRoll = false;
+	OcclusionSpringArm->bDoCollisionTest = true;
+	OcclusionSpringArm->ProbeChannel = ECC_Camera;
+	OcclusionSpringArm->ProbeSize = 12.f;
 
 	OcclusionCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	OcclusionCamera->SetupAttachment(OcclusionSpringArm, USpringArmComponent::SocketName);
+	OcclusionCamera->bUsePawnControlRotation = false;
+	OcclusionCamera->FieldOfView = 80.f;
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
@@ -31,10 +41,10 @@ ARogueCharacterBase::ARogueCharacterBase()
 
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
-		MoveComp->bOrientRotationToMovement = false;
+		MoveComp->bUseControllerDesiredRotation = false;
+		MoveComp->bOrientRotationToMovement = true;
+		MoveComp->RotationRate = FRotator(0.f, 540.f, 0.f);
 	}
-	
-
 }
 
 // Called when the game starts or when spawned
@@ -47,7 +57,26 @@ void ARogueCharacterBase::BeginPlay()
 
 	if (OcclusionSpringArm)
 	{
-		OcclusionSpringArm->bDoCollisionTest = false;
+		OcclusionSpringArm->bDoCollisionTest = true;
+	}
+}
+
+void ARogueCharacterBase::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC || !PC->IsLocalController())
+	{
+		return;
+	}
+
+	PC->SetControlRotation(FRotator(-15.f, GetActorRotation().Yaw, 0.f));
+
+	if (PC->PlayerCameraManager)
+	{
+		PC->PlayerCameraManager->ViewPitchMin = -65.f;
+		PC->PlayerCameraManager->ViewPitchMax = 35.f;
 	}
 }
 

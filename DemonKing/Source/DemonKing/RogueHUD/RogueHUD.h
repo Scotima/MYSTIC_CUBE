@@ -22,6 +22,7 @@ public:
 
 	FORCEINLINE void SetOnOFF(bool a) { OnOFF = a; }
 	FORCEINLINE bool GetOnOFF() { return OnOFF; }
+	FORCEINLINE UUserWidget* GetPauseMenuWidget() const { return PauseMenuWidget; }
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")

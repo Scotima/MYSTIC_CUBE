@@ -15,6 +15,7 @@ class DEMONKING_API ARogueCharacterBase : public ACharacter
 public:
 	// Sets default values for this character's properties
 	ARogueCharacterBase();
+	virtual void PawnClientRestart() override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -46,7 +47,7 @@ protected:
 	UPROPERTY(Transient)
 		TObjectPtr<class UCameraComponent> OcclusionCamera;
 
-	UPROPERTY(Transient)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<class USpringArmComponent> OcclusionSpringArm;
 
 protected:
@@ -61,7 +62,7 @@ protected:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera|Occlusion")
-	bool bEnableCameraOcclusionFade = true;
+	bool bEnableCameraOcclusionFade = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera|Occlusion")
 	float CameraOcclusionTraceRadius = 24.0f;

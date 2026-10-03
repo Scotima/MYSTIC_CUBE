@@ -50,6 +50,9 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void Server_SetLobbyNickName(const FString& newname);
 
+	UFUNCTION(BlueprintCallable, Category = "Input|UI")
+	void SetItemSelectionOpen(bool bOpen, UUserWidget* Widget);
+
 
 
 private:
@@ -73,6 +76,14 @@ private:
 	void OnShiftPressed();
 
 	void OnPauseMenuPressed();
+
+	bool CanUseGameplayInput() const;
+	void RefreshCursorInputMode();
+	void Turn(float Value);
+	void LookUp(float Value);
+
+	bool bItemSelectionOpen = false;
+	TWeakObjectPtr<UUserWidget> ItemSelectionWidget;
 
 
 protected:
