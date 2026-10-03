@@ -13,6 +13,7 @@ void ARoguePlayerState::SetLobbyPlayerNickName(FString& NickName)
 		return;
 	}
 	PlayerNickName = NickName;
+	OnLobbyNickNameChanged.Broadcast(PlayerNickName);
 }
 
 FString ARoguePlayerState::GetLobbyPlayerNickName()

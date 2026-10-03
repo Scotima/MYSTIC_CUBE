@@ -374,7 +374,7 @@ void UCCharacterStatComponent::Die()
 	// TODO: Call owner character death animation or state transition.
 }
 
-void UCCharacterStatComponent::InitializeStatsAfterPossession(int32 PlayerId)
+void UCCharacterStatComponent::InitializeStatsAfterPossession()
 {
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
 
@@ -390,7 +390,7 @@ void UCCharacterStatComponent::InitializeStatsAfterPossession(int32 PlayerId)
 
 	ARoguePlayerState* PS = OwnerPawn->GetPlayerState<ARoguePlayerState>();
 
-	if (!IsValid(PS) || PS->GetPlayerId() != PlayerId)
+	if (!IsValid(PS))
 	{
 		return;
 	}
@@ -402,6 +402,15 @@ void UCCharacterStatComponent::InitializeStatsAfterPossession(int32 PlayerId)
 		return;
 	}
 
+	const FUniqueNetIdRepl& UniqueId = PS->GetUniqueId();
+
+	if (!UniqueId.IsValid())
+	{
+		return;
+	}
+
+	const FString PlayerKey = UniqueId.ToString();
+
 	InitByClass(DefaultClassType);
 
 	if (MaxHp <= 0)
@@ -410,7 +419,7 @@ void UCCharacterStatComponent::InitializeStatsAfterPossession(int32 PlayerId)
 	}
 
 	float HpPercent = 1.0f;
-	GI->TryGetSavedHPPercent(PlayerId, HpPercent);
+	GI->TryGetSavedHPPercent(PlayerKey, HpPercent);
 
 	HpPercent = FMath::Clamp(HpPercent, 0.0f, 1.0f);
 	CurrentHp = MaxHp * HpPercent;
