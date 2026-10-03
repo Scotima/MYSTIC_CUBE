@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "DemonKing/GameFlow/MyGameInstance.h"
 #include "RoguePlayerController.generated.h"
 
 UENUM(BlueprintType)
@@ -49,6 +50,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void Server_SetLobbyNickName(const FString& newname);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Player")
+	void Server_SelectPlayerClass(EPlayerClassType PlayerClass);
 
 
 

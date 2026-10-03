@@ -100,7 +100,7 @@ void ARogueCharacterBase::PossessedBy(AController* NewController)
 		return;
 	}
 
-	StatComponent->InitializeStatsAfterPossession(RPS->GetPlayerId());
+	StatComponent->InitializeStatsAfterPossession();
 
 	UCPlayerHPWidgetComponent* PHPWidgetComp = FindComponentByClass<UCPlayerHPWidgetComponent>();
 
