@@ -1,5 +1,16 @@
 ﻿#include "DemonKing/GameFlow/RogueGameState.h"
 #include "Net/UnrealNetwork.h"  
+void ARogueGameState::AddPlayerState(APlayerState* PlayerState)
+{
+	const int32 PreviousCount = PlayerArray.Num();
+
+	Super::AddPlayerState(PlayerState);
+
+	if (PlayerArray.Num() != PreviousCount)
+	{
+		OnLobbyPlayerListChanged.Broadcast();
+	}
+}
 ARogueGameState::ARogueGameState()
 {
 	bReplicates = true;

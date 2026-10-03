@@ -38,6 +38,29 @@ void UMyGameInstance::RequestSaveAndLeaveToLobby()
 	UGameplayStatics::OpenLevel(GetWorld(), TEXT("/Game/Maps/L_MainMenu"));
 }
 
+void UMyGameInstance::SetPlayerClassById(const FString& PlayerKey, EPlayerClassType PlayerClass)
+{
+	PlayerClassById.Add(PlayerKey, PlayerClass);
+}
+
+bool UMyGameInstance::TryGetPlayerClassById(const FString& PlayerKey, EPlayerClassType& OutPlayerClass) const
+{
+	if (PlayerKey.IsEmpty())
+	{
+		return false;
+	}
+
+	const EPlayerClassType* SavedClass = PlayerClassById.Find(PlayerKey);
+
+	if (!SavedClass)
+	{
+		return false;
+	}
+
+	OutPlayerClass = *SavedClass;
+	return true;
+}
+
 void UMyGameInstance::SetExpectedStagePlayerCount(int32 PlayerNum)
 {
 	ExpectedPlayerCount = PlayerNum;
@@ -59,18 +82,25 @@ void UMyGameInstance::SetHP_Percent(APawn* PlayerPawn,float currentHP)
 		return;
 	}
 
-	const int32 PlayerId = PS->GetPlayerId();
 	const float HpPercent = FMath::Clamp(currentHP, 0.0f, 1.0f);
 
-	PlayerHPPercentById.Add(PlayerId, HpPercent);
-
-	
 	PS->SetPlayerState_HP(HP_Percent);
+
+	const FUniqueNetIdRepl& UniqueId = PS->GetUniqueId();
+	if (!UniqueId.IsValid())
+	{
+		return;
+	}
+
+	FString PlayerKey = UniqueId.ToString();
+
+	PlayerHPPercentById.Add(PlayerKey, HpPercent);
+
 }
 
-bool UMyGameInstance::TryGetSavedHPPercent(int32 PlayerId, float& OutHPPercent) const
+bool UMyGameInstance::TryGetSavedHPPercent(const FString& PlayerKey, float& OutHPPercent) const
 {
-	const float* SavedHPPercent = PlayerHPPercentById.Find(PlayerId);
+	const float* SavedHPPercent = PlayerHPPercentById.Find(PlayerKey);
 
 	if (SavedHPPercent == nullptr)
 	{

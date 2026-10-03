@@ -28,6 +28,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Save")
 	void RequestSaveAndLeaveToLobby();
 
+	UFUNCTION(BlueprintCallable, Category = "Select")
+	void SetPlayerClassById(const FString& PlayerKey, EPlayerClassType PlayerClass);
+
+	UFUNCTION(BlueprintCallable, Category = "Select")
+	bool TryGetPlayerClassById(const FString& PlayerKey, EPlayerClassType& OutPlayerClass) const;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player")
 	EPlayerClassType SelectedPlayerClass = EPlayerClassType::Warrior;
 
@@ -38,7 +44,7 @@ public:
 
 	void SetHP_Percent(APawn* PlayerPawn,float currentHP);
 
-	bool TryGetSavedHPPercent(int32 PlayerId, float& OutHPPercent) const;
+	bool TryGetSavedHPPercent(const FString& PlayerKey, float& OutHPPercent) const;
 
 
 private:
@@ -55,5 +61,7 @@ private:
 	float Health;
 	float Mana;
 
-	TMap<int32, float> PlayerHPPercentById;
+	TMap<FString, float> PlayerHPPercentById;
+
+	TMap<FString, EPlayerClassType> PlayerClassById;
 };

@@ -179,7 +179,7 @@ protected:
 
 
 public:
-	void InitializeStatsAfterPossession(int32 PlayerId);
+	void InitializeStatsAfterPossession();
 
 
 
