@@ -17,6 +17,15 @@ public:
 	ARogueCharacterBase();
 	virtual void PawnClientRestart() override;
 
+	UFUNCTION(Server, Reliable)
+	void ServerInputSkillLeftMouse();
+
+	UFUNCTION(Server, Reliable)
+	void ServerSkillInput(int32 SkillSlot, bool bPressed = true);
+
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category = "Skill")
+	void MulticastPlaySkillMontage(UAnimMontage* Montage);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -45,7 +54,7 @@ public:
 
 protected:
 	UPROPERTY(Transient)
-		TObjectPtr<class UCameraComponent> OcclusionCamera;
+	TObjectPtr<class UCameraComponent> OcclusionCamera;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<class USpringArmComponent> OcclusionSpringArm;

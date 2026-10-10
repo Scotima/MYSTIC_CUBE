@@ -16,6 +16,9 @@ ARogueCharacterBase::ARogueCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	bReplicates = true;
+	SetReplicateMovement(true);
+
 	OcclusionSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	OcclusionSpringArm->SetupAttachment(RootComponent);
 	OcclusionSpringArm->TargetArmLength = 380.f;
@@ -45,6 +48,18 @@ ARogueCharacterBase::ARogueCharacterBase()
 		MoveComp->bOrientRotationToMovement = true;
 		MoveComp->RotationRate = FRotator(0.f, 540.f, 0.f);
 	}
+
+
+}
+
+void ARogueCharacterBase::MulticastPlaySkillMontage_Implementation(UAnimMontage* Montage)
+{
+	if (!Montage)
+	{
+		return;
+	}
+
+	PlayAnimMontage(Montage);
 }
 
 // Called when the game starts or when spawned
@@ -78,6 +93,48 @@ void ARogueCharacterBase::PawnClientRestart()
 		PC->PlayerCameraManager->ViewPitchMin = -65.f;
 		PC->PlayerCameraManager->ViewPitchMax = 35.f;
 	}
+}
+
+void ARogueCharacterBase::ServerSkillInput_Implementation(int32 SkillSlot, bool bPressed = true)
+{
+	UCCharacterStatComponent* Stat = FindComponentByClass<UCCharacterStatComponent>();
+
+	if (!IsValid(Stat) || Stat->GetCurrentHp() <= 0.0f)
+	{
+		return;
+	}
+
+	if (!bPressed)
+	{
+		if (SkillSlot == 0)
+		{
+			InputSkillLeftMouseReleased();
+		}
+		return;
+	}
+
+	switch (SkillSlot)
+	{
+	case 0:
+		InputSkillLeftMouse();
+		break;
+	case 1:
+		InputSkillQ();
+		break;
+	case 2:
+		InputSkillE();
+		break;
+	case 3:
+		InputSkillShift();
+		break;
+	default:
+		return;
+	}
+}
+
+void ARogueCharacterBase::ServerInputSkillLeftMouse_Implementation()
+{
+	InputSkillLeftMouse();
 }
 
 void ARogueCharacterBase::OnRep_PlayerState()
