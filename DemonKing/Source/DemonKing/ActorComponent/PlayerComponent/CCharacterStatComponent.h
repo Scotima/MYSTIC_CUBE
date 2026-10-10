@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "DemonKing/GameFlow/MyGameInstance.h"
+
+#include "DemonKing/SkillStruct/BoxTraceTypes.h"
 #include "CCharacterStatComponent.generated.h"
 
 
@@ -21,6 +23,8 @@ protected:
 
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	void DoTrace(const FBoxTraceData& BoxTraceData);
 
 	UFUNCTION(BlueprintCallable, Category = "Stat")
 	void InitByClass(EPlayerClassType ClassType);
@@ -191,6 +195,9 @@ private:
 	bool isDead = false;
 	bool bCanBeDamaged = true;
 	bool bStatsInitialized = false;
+
+	bool bCurrentSkillIsBasicAttack = false;
+	float CurrentSkillDamageCoefficient = 1.0f;
 
 	static constexpr float ArmorK = 200.0f;
 	static constexpr float MaxDamageReduction = 0.8f;

@@ -32,7 +32,6 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void DoTrace(const FBoxTraceData& BoxTraceData);
 
 	FORCEINLINE void SetCanInput(bool a) { bCanInput = a; }
 	FORCEINLINE bool GetCanInput() { return bCanInput; }

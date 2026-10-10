@@ -34,116 +34,16 @@ void UCKnightSkillComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	
 }
 
-void UCKnightSkillComponent::DoTrace(const FBoxTraceData& BoxTraceData)
-{
-	AActor* Owner = GetOwner();
 
-	if (!Owner)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[UCKnightSkillComponent::DoTrace] !Owner"));
-		return;
-	}
-
-	
-	const float Alpha = FMath::Clamp(BoxTraceData.Value, 0.0f, 1.0f);
-
-	const float TraceDistance = FMath::Lerp(BoxTraceData.MaxDistance, BoxTraceData.MinDistance, Alpha);
-	const FVector BoxHalfSize = FMath::Lerp(BoxTraceData.MaxBoxHalfSize, BoxTraceData.MinBoxHalfSize, Alpha);
-	
-	FVector TraceDir = Owner->GetActorForwardVector();
-
-	switch (BoxTraceData.BoxTraceDirection)
-	{
-	case EBoxTraceDirection::FORWARD:
-		TraceDir = Owner->GetActorForwardVector();
-		break;
-	case EBoxTraceDirection::BACKWARD:
-		TraceDir = -Owner->GetActorForwardVector();
-		break;
-	case EBoxTraceDirection::RIGHT:
-		TraceDir = Owner->GetActorRightVector();
-		break;
-	case EBoxTraceDirection::LEFT:
-		TraceDir = -Owner->GetActorRightVector();
-		break;
-	default:
-		break;
-	}
-
-	
-
-	const FVector Start = Owner->GetActorLocation() + TraceDir*BoxTraceData.StartDistance;
-	const FVector End = Start + TraceDir * TraceDistance;
-
-	TArray<FHitResult> HitResults;
-	TArray<AActor*> IgnoreActors;
-	IgnoreActors.Add(Owner);
-
-	bool Hit = UKismetSystemLibrary::BoxTraceMulti(this,
-		Start, End, BoxHalfSize, TraceDir.Rotation(), UEngineTypes::ConvertToTraceType(ECC_Visibility),
-		false, IgnoreActors, EDrawDebugTrace::ForDuration, HitResults, true);
-
-
-	if (Hit)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("HIT"));
-
-		TSet<AActor*> AlreadyHitActors; // HashAlgorithm
-
-		for (const FHitResult& HitResult : HitResults)
-		{
-			AActor* HitActor = HitResult.GetActor();
-
-			if (!HitActor || HitActor == Owner)
-			{
-				continue;
-			}
-
-			if (AlreadyHitActors.Contains(HitActor))
-			{
-				continue;
-			}
-
-			AlreadyHitActors.Add(HitActor);
-
-			UCEnemyStatComponent* Enemy = HitActor->FindComponentByClass<UCEnemyStatComponent>();
-
-			if (!Enemy)
-			{
-				continue;
-			}
-
-			UCCharacterStatComponent* Stat = Owner->FindComponentByClass<UCCharacterStatComponent>();
-			if (!Stat)
-			{
-				continue;
-			}
-
-			float Damage = 0.0f;
-			if (bCurrentSkillIsBasicAttack)
-			{
-				bool bIsCrit = false;
-				Damage = Stat->CalculateBasicAttackDamage(bIsCrit);
-			}
-			else
-			{
-				Damage = Stat->CalculateSkillDamage(CurrentSkillDamageCoefficient);
-			}
-
-			UE_LOG(LogTemp, Warning, TEXT("Damage = %f"), Damage);
-
-			Enemy->TakeDamage(Damage);
-		}
-	}
-
-
-
-
-}
 
 void UCKnightSkillComponent::UseSkill(int SkillID, int32 ComboIndex)
 {
 	
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+	{
+		return;
+	}
+
 
 	if ((BeforeSKillId / 1000 % 10)  != (SkillID / 1000 % 10))
 	{
@@ -196,7 +96,8 @@ void UCKnightSkillComponent::UseSkill(int SkillID, int32 ComboIndex)
 				OwnerCharacter->GetController()->SetIgnoreMoveInput(true);
 			}
 			UE_LOG(LogTemp, Warning, TEXT("[UCKnightSkillComponent::UseSkill] UseSKill"));
-			OwnerCharacter->PlaySkillMotion(animMontage);
+			
+			OwnerCharacter->MulticastPlaySkillMontage(animMontage);
 			float WorldTime =GetWorld()->GetTimeSeconds();
  			float EndSkillTime = WorldTime + coolTime;
 			SkillCoolTimeMap.Add(SkillID, EndSkillTime); 

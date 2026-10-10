@@ -9,6 +9,8 @@
 APlayerCharacterBase::APlayerCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	
 }
 
 void APlayerCharacterBase::BeginPlay()
