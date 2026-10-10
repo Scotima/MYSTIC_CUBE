@@ -1,5 +1,10 @@
 #include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
 #include "DemonKing/GameFlow/RoguePlayerState.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Engine/EngineTypes.h"
+#include "GameFramework/Actor.h"
+#include "DemonKing/ActorComponent/EnemyComponent/CEnemyStatComponent.h"
+
 
 
 UCCharacterStatComponent::UCCharacterStatComponent()
@@ -442,4 +447,104 @@ UMyGameInstance* UCCharacterStatComponent::GetInstance() const
 	}
 
 	return Cast<UMyGameInstance>(World->GetGameInstance());
+}
+
+void UCCharacterStatComponent::DoTrace(const FBoxTraceData& BoxTraceData)
+{
+	AActor* Owner = GetOwner();
+
+	if (!Owner || !Owner->HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[UCKnightSkillComponent::DoTrace] !Owner"));
+		return;
+	}
+
+
+	const float Alpha = FMath::Clamp(BoxTraceData.Value, 0.0f, 1.0f);
+
+	const float TraceDistance = FMath::Lerp(BoxTraceData.MaxDistance, BoxTraceData.MinDistance, Alpha);
+	const FVector BoxHalfSize = FMath::Lerp(BoxTraceData.MaxBoxHalfSize, BoxTraceData.MinBoxHalfSize, Alpha);
+
+	FVector TraceDir = Owner->GetActorForwardVector();
+
+	switch (BoxTraceData.BoxTraceDirection)
+	{
+	case EBoxTraceDirection::FORWARD:
+		TraceDir = Owner->GetActorForwardVector();
+		break;
+	case EBoxTraceDirection::BACKWARD:
+		TraceDir = -Owner->GetActorForwardVector();
+		break;
+	case EBoxTraceDirection::RIGHT:
+		TraceDir = Owner->GetActorRightVector();
+		break;
+	case EBoxTraceDirection::LEFT:
+		TraceDir = -Owner->GetActorRightVector();
+		break;
+	default:
+		break;
+	}
+
+
+
+	const FVector Start = Owner->GetActorLocation() + TraceDir * BoxTraceData.StartDistance;
+	const FVector End = Start + TraceDir * TraceDistance;
+
+	TArray<FHitResult> HitResults;
+	TArray<AActor*> IgnoreActors;
+	IgnoreActors.Add(Owner);
+
+	bool Hit = UKismetSystemLibrary::BoxTraceMulti(this,
+		Start, End, BoxHalfSize, TraceDir.Rotation(), UEngineTypes::ConvertToTraceType(ECC_Visibility),
+		false, IgnoreActors, EDrawDebugTrace::ForDuration, HitResults, true);
+
+
+	if (Hit)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HIT"));
+
+		TSet<AActor*> AlreadyHitActors; // HashAlgorithm
+
+		for (const FHitResult& HitResult : HitResults)
+		{
+			AActor* HitActor = HitResult.GetActor();
+
+			if (!HitActor || HitActor == Owner)
+			{
+				continue;
+			}
+
+			if (AlreadyHitActors.Contains(HitActor))
+			{
+				continue;
+			}
+
+			AlreadyHitActors.Add(HitActor);
+
+			UCEnemyStatComponent* Enemy = HitActor->FindComponentByClass<UCEnemyStatComponent>();
+
+			if (!Enemy)
+			{
+				continue;
+			}
+
+
+			float Damage = 0.0f;
+			if (bCurrentSkillIsBasicAttack)
+			{
+				bool bIsCrit = false;
+				Damage = CalculateBasicAttackDamage(bIsCrit);
+			}
+			else
+			{
+				Damage = CalculateSkillDamage(CurrentSkillDamageCoefficient);
+			}
+
+			UE_LOG(LogTemp, Warning, TEXT("Damage = %f"), Damage);
+
+			Enemy->TakeDamage(Damage);
+
+			//스탯으로 옮기기. 코드 고칠 필요 있음..
+		}
+	}
 }

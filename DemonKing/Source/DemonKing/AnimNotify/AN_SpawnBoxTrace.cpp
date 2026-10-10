@@ -1,5 +1,5 @@
 #include "DemonKing/AnimNotify/AN_SpawnBoxTrace.h"
-#include "DemonKing/SkillComponent/CKnightSkillComponent.h"
+#include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
 
 void UAN_SpawnBoxTrace::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
@@ -15,7 +15,7 @@ void UAN_SpawnBoxTrace::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBa
 		return;
 	}
 
-	UCKnightSkillComponent* SkillComponent = Owner->FindComponentByClass<UCKnightSkillComponent>();
+	UCCharacterStatComponent* SkillComponent = Owner->FindComponentByClass<UCCharacterStatComponent>();
 	if (!SkillComponent)
 	{
 		return;

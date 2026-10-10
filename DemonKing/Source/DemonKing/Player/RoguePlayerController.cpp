@@ -250,7 +250,7 @@ void ARoguePlayerController::OnMouseLeftClick()
 		return;
 	}
     characterBase->SetUsingSkill(true);
-	characterBase->InputSkillLeftMouse();
+	characterBase->ServerSkillInput(0, true); // 마우스 왼쪽 클릭 서버 호출.
 
 }
 
@@ -263,7 +263,7 @@ void ARoguePlayerController::OnMouseLeftReleased()
 	}
 
 	characterBase->SetUsingSkill(false);
-	characterBase->InputSkillLeftMouseReleased();
+	characterBase->ServerSkillInput(0, false);
 }
 void ARoguePlayerController::OnQPressed()
 {
@@ -280,7 +280,7 @@ void ARoguePlayerController::OnQPressed()
 		return;
 	}
 	characterBase->SetUsingSkill(true);
-	characterBase->InputSkillQ();
+	characterBase->ServerSkillInput(1); // Q 스킬 서버 호출.
 }
 
 void ARoguePlayerController::OnQDePressed()
@@ -307,7 +307,7 @@ void ARoguePlayerController::OnEPressed()
 		return;
 	}
 	characterBase->SetUsingSkill(true);
-	characterBase->InputSkillE();
+	characterBase->ServerSkillInput(2);
 }
 
 void ARoguePlayerController::OnEDePressed()
@@ -333,7 +333,7 @@ void ARoguePlayerController::OnShiftPressed()
 		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
 		return;
 	}
-	characterBase->InputSkillShift();
+	characterBase->ServerSkillInput(3);
 
 	//대쉬 중인지 판단하는 변수 만들어서 wasd입력값 못받게 하기.
 	//끝나면 노티파이로 호출해서 다시 true로 만들기. 간단하게.
@@ -579,7 +579,7 @@ void ARoguePlayerController::RefreshCursorInputMode()
 		if (ARogueCharacterBase* RogueCharacter = Cast<ARogueCharacterBase>(GetPawn()))
 		{
 			RogueCharacter->SetUsingSkill(false);
-			RogueCharacter->InputSkillLeftMouseReleased();
+			RogueCharacter->ServerSkillInput(0, false);
 		}
 	}
 

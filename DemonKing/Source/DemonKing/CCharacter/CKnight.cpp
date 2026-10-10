@@ -54,6 +54,27 @@ void ACKnight::EndNiagaraImpact()
 
 void ACKnight::InputSkillLeftMouse()
 {
+
+	if (!HasAuthority()) // 클라이언트는 서버에 평타를 요청합니다.
+	{
+		return;
+	}
+
+	if (!IsValid(KnightSkillComponent))
+	{
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("[Server] Knight basic attack input"));
+
+	UCCharacterStatComponent* Stat = FindComponentByClass<UCCharacterStatComponent>();
+
+	if (!IsValid(Stat) || Stat->GetCurrentHp() <= 0.0f) // 체력이 0 이하인데도 공격하는거 막기.
+	{
+		return;
+	}
+
+
 	UE_LOG(LogTemp, Warning, TEXT("[ACKnight::InputSkillLeftMouse]"));
 	if(eSkillName != SkillName::NormalAttack)
 	{	
@@ -80,6 +101,11 @@ void ACKnight::InputSkillLeftMouse()
 
 void ACKnight::InputSkillQ()
 {
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	if(eSkillName != SkillName::SkillQ)
 	{
 		eSkillName = SkillName::SkillQ;
@@ -101,6 +127,12 @@ void ACKnight::InputSkillQ()
 
 void ACKnight::InputSkillE()
 {
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+
 	if(eSkillName != SkillName::SkillE)
 	{
 		eSkillName = SkillName::SkillE;
@@ -124,6 +156,12 @@ void ACKnight::InputSkillE()
 
 void ACKnight::InputSkillShift()
 {
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+
 	bAttackMode = true;
 	KnightSkillComponent->UseSkill(4000, 0);
 
@@ -214,6 +252,11 @@ void ACKnight::Refresh_HP()
 
 void ACKnight::SkillDeshe()
 {
+	if (!HasAuthority())
+	{
+		return;
+	}
+
 	// 코드 출처 https://s-pace.tistory.com/36
 	float DesheDistance = 1600.0f;
 

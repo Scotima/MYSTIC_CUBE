@@ -30,6 +30,7 @@ public:
 	void TakeDamage(float IncomingDamage);
 
 	void TakeDamage(float IncomingDamage, float DefensePenetration, float DefenseIgnoreRate);
+
 	void DoTrace(const FBoxTraceData& BoxTraceData);
 	void Die();
 
