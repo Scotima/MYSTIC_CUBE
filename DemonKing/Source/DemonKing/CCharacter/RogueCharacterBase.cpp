@@ -10,9 +10,10 @@
 #include "DemonKing/ActorComponent/PlayerComponent/CCharacterStatComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "CollisionQueryParams.h"
 #include "Animation/AnimInstance.h"
-
+#include "Components/SkeletalMeshComponent.h"
 
 
 
@@ -477,6 +478,49 @@ void ARogueCharacterBase::InputSkillLeftMouseReleased()
 {
 }
 
+bool ARogueCharacterBase::FindGroundBelowSocket(
+	FName SocketName,
+	FVector& GroundLocation,
+	float TraceUpDistance,
+	float TraceDownDistance) const
+{
+	GroundLocation = FVector::ZeroVector;
+
+	const USkeletalMeshComponent* CharacterMesh = GetMesh();
+	UWorld* World = GetWorld();
+
+	if (!World || !CharacterMesh ||
+		!CharacterMesh->DoesSocketExist(SocketName))
+	{
+		return false;
+	}
+
+	const FVector SocketLocation =
+		CharacterMesh->GetSocketLocation(SocketName);
+
+	const FVector Start = SocketLocation +
+		FVector::UpVector * FMath::Max(0.0f, TraceUpDistance);
+
+	const FVector End = SocketLocation -
+		FVector::UpVector * FMath::Max(0.0f, TraceDownDistance);
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
+	// 몬스터의 Pawn 충돌 대신 정적 지형 검사
+	FCollisionObjectQueryParams ObjectParams;
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
+
+	FHitResult Hit;
+	if (!World->LineTraceSingleByObjectType(
+		Hit, Start, End, ObjectParams, QueryParams))
+	{
+		return false;
+	}
+
+	GroundLocation = Hit.ImpactPoint;
+	return true;
+}
 bool ARogueCharacterBase::HasMoveInput() const
 {
 	const APlayerController* PC = Cast<APlayerController>(GetController());
