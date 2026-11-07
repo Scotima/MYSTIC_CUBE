@@ -17,6 +17,7 @@
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "GameFramework/PlayerState.h"
+#include "DemonKing/ArcherCharacter.h"
 
 
 ARoguePlayerController::ARoguePlayerController()
@@ -242,29 +243,50 @@ void ARoguePlayerController::OnMouseLeftClick()
 		return;
 	}
 
+	bConsumeLeftMouseRelease = false;
+
 	characterBase = Cast<ARogueCharacterBase>(GetPawn());
-	UE_LOG(LogTemp, Warning, TEXT("[ARoguePlayerController::OnMouseLeftClick]"));
-	if (!characterBase)
+	if (!IsValid(characterBase))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
 		return;
 	}
-    characterBase->SetUsingSkill(true);
-	characterBase->ServerSkillInput(0, true); // 마우스 왼쪽 클릭 서버 호출.
 
+	if (AArcherCharacter* Archer =
+		Cast<AArcherCharacter>(characterBase))
+	{
+		if (Archer->IsArrowRainTargeting())
+		{
+			// 확정 성공 여부와 관계없이 이 클릭은 평타로 보내지 않음
+			bConsumeLeftMouseRelease = true;
+
+			Archer->ConfirmArrowRainTargeting();
+			return;
+		}
+	}
+
+	// 조준 중이 아닐 때만 기존 평타(좌클릭 스킬)를 실행
+	characterBase->SetUsingSkill(true);
+	characterBase->ServerSkillInput(0, true);
 }
 
 void ARoguePlayerController::OnMouseLeftReleased()
 {
-	if(!characterBase)
+	if (bConsumeLeftMouseRelease)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("CharacterBase failed casting"));
+		bConsumeLeftMouseRelease = false;
+		return;
+	}
+
+	characterBase = Cast<ARogueCharacterBase>(GetPawn());
+	if (!IsValid(characterBase))
+	{
 		return;
 	}
 
 	characterBase->SetUsingSkill(false);
 	characterBase->ServerSkillInput(0, false);
 }
+
 void ARoguePlayerController::OnQPressed()
 {
 	if (!CanUseGameplayInput())
@@ -304,6 +326,11 @@ void ARoguePlayerController::OnEPressed()
 	if (!characterBase)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("characterBase failed casting"));
+		return;
+	}
+	if (AArcherCharacter* Archer = Cast<AArcherCharacter>(characterBase)) //궁수 E 스킬 조준
+	{
+		Archer->InputSkillE();
 		return;
 	}
 	characterBase->SetUsingSkill(true);

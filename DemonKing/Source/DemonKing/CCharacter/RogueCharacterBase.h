@@ -26,6 +26,14 @@ public:
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category = "Skill")
 	void MulticastPlaySkillMontage(UAnimMontage* Montage);
 
+	// 현재 소켓 아래의 정적 지면 위치 탐색
+	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Skill|Targeting")
+	bool FindGroundBelowSocket(
+		FName SocketName,
+		FVector& GroundLocation,
+		float TraceUpDistance = 100.0f,
+		float TraceDownDistance = 500.0f) const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
