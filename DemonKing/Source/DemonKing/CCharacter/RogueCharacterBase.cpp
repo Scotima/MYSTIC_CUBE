@@ -12,9 +12,12 @@
 #include "Camera/PlayerCameraManager.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "CollisionQueryParams.h"
+#include "Animation/AnimInstance.h"
 
 
-ARogueCharacterBase::ARogueCharacterBase()
+
+
+ARogueCharacterBase::ARogueCharacterBase(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -56,12 +59,49 @@ ARogueCharacterBase::ARogueCharacterBase()
 
 void ARogueCharacterBase::MulticastPlaySkillMontage_Implementation(UAnimMontage* Montage)
 {
-	if (!Montage)
+	if (!Montage || !IsValid(GetMesh()))
 	{
 		return;
 	}
 
-	PlayAnimMontage(Montage);
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (!IsValid(AnimInstance))
+	{
+		return;
+	}
+
+	const int32 PreviousAttackId = AttackPlayerId;
+	const int32 ThisAttackId = ++AttackPlayerId;
+
+
+	if (PlayAnimMontage(Montage) <= 0.0f)
+	{	
+		AttackPlayerId = PreviousAttackId;
+		return;
+	}
+
+
+
+	bIsAttacking = true;
+
+	FOnMontageEnded EndDelegate;
+
+	EndDelegate.BindWeakLambda(
+		this, [this, ThisAttackId](UAnimMontage* Montage, bool bInterrupted)
+		{
+			if (ThisAttackId != AttackPlayerId)
+			{
+				return;
+
+			}
+
+			OnSkillMontageEnded(Montage, bInterrupted);
+		});
+
+	AnimInstance->Montage_SetEndDelegate(EndDelegate, Montage);
+
+	
 }
 
 // Called when the game starts or when spawned
@@ -112,6 +152,11 @@ void ARogueCharacterBase::ServerSkillInput_Implementation(int32 SkillSlot, bool 
 		{
 			InputSkillLeftMouseReleased();
 		}
+		return;
+	}
+
+	if (bIsAttacking)
+	{
 		return;
 	}
 
@@ -328,6 +373,11 @@ bool ARogueCharacterBase::IsValidOcclusionTarget(const UMeshComponent* MeshCompo
 	return ObjectType == ECC_WorldStatic || ObjectType == ECC_WorldDynamic;
 }
 
+void ARogueCharacterBase::OnSkillMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	bIsAttacking = false;
+}
+
 void ARogueCharacterBase::FadeOccludingMesh(UMeshComponent* MeshComponent)
 {
 	if (!MeshComponent || FadedOccluderMaterials.Contains(MeshComponent))
@@ -428,6 +478,7 @@ void ARogueCharacterBase::InputSkillLeftMouseReleased()
 {
 }
 
+
 bool ARogueCharacterBase::FindGroundBelowSocket(
 	FName SocketName,
 	FVector& GroundLocation,
@@ -470,4 +521,49 @@ bool ARogueCharacterBase::FindGroundBelowSocket(
 
 	GroundLocation = Hit.ImpactPoint;
 	return true;
+}
+
+bool ARogueCharacterBase::HasMoveInput() const
+{
+	const APlayerController* PC = Cast<APlayerController>(GetController());
+
+	if (!PC || !PC->IsLocalController())
+	{
+		return false;
+ 	}
+
+
+	const float ForwardValue = PC->GetInputAxisValue(TEXT("MoveForward"));
+	const float RightValue = PC->GetInputAxisValue(TEXT("MoveRight"));
+
+	return !FMath::IsNearlyZero(ForwardValue, 0.1f) || !FMath::IsNearlyZero(RightValue, 0.1f);
+
+}
+
+void ARogueCharacterBase::MulticastCancelAttackForMovement_Implementation()
+{
+	
+	if (!IsValid(GetMesh()))
+	{
+		return;
+	}
+
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (!IsValid(AnimInstance))
+	{
+		return;
+	}
+
+
+	UAnimMontage* AnimMontage = AnimInstance->GetCurrentActiveMontage();
+
+	if (!IsValid(AnimMontage))
+	{
+		return;
+	}
+
+	AnimInstance->Montage_Stop(0.1f, AnimMontage);
+
 }

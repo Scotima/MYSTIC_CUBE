@@ -14,7 +14,7 @@ class DEMONKING_API ARogueCharacterBase : public ACharacter
 
 public:
 	// Sets default values for this character's properties
-	ARogueCharacterBase();
+	ARogueCharacterBase(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	virtual void PawnClientRestart() override;
 
 	UFUNCTION(Server, Reliable)
@@ -60,6 +60,18 @@ public:
 	FORCEINLINE void SetUsingSkill(bool a) { bUsingSkill = a; }
 	FORCEINLINE bool GetUsingSkill() { return bUsingSkill; }
 
+
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastCancelAttackForMovement();
+
+	UFUNCTION(BlueprintCallable, Category = "bIsAttacking")
+	FORCEINLINE void SetIsAttacking(bool a) { bIsAttacking = a; }
+
+
+	bool HasMoveInput() const;
+
+
 protected:
 	UPROPERTY(Transient)
 	TObjectPtr<class UCameraComponent> OcclusionCamera;
@@ -76,6 +88,10 @@ protected:
 	void RestoreOccludingMesh(class UMeshComponent* MeshComponent);
 	void RestoreAllOccludingMeshes();
 	bool IsValidOcclusionTarget(const class UMeshComponent* MeshComponent) const;
+
+
+protected:
+	virtual void OnSkillMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera|Occlusion")
@@ -103,4 +119,7 @@ protected:
 
 protected:
 	bool bUsingSkill = false;
+	bool bIsAttacking = false;
+
+	int32 AttackPlayerId = 0;
 };
