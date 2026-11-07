@@ -51,10 +51,15 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void Server_SetLobbyNickName(const FString& newname);
 
+
+
+
 	UFUNCTION(BlueprintCallable, Category = "Input|UI")
 	void SetItemSelectionOpen(bool bOpen, UUserWidget* Widget);
+
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Player")
 	void Server_SelectPlayerClass(EPlayerClassType PlayerClass);
+
 
 
 
@@ -87,6 +92,9 @@ private:
 
 	bool bItemSelectionOpen = false;
 	TWeakObjectPtr<UUserWidget> ItemSelectionWidget;
+
+	// 조준 확정에 사용한 좌클릭의 Release도 소비
+	bool bConsumeLeftMouseRelease = false;
 
 
 protected:
